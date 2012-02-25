@@ -356,7 +356,7 @@ function sendRandomPeers($info_hash)
 	{
 		echo (mysql_num_rows($result) * 6) . ":";
 		while ($row = mysql_fetch_row($result))
-			echo str_pad(utf8_decode($row[0], 6, chr(32)));
+			echo str_pad(utf8_decode($row[0]), 6, chr(32));
 	}
 	else
 	{
