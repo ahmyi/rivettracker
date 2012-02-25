@@ -132,7 +132,11 @@ if (file_exists("rss/rss.xml"))
 <tr>
 	<?php
 	//Cleanup page number to prevent XSS
-	$_GET["page_number"] = htmlspecialchars($_GET["page_number"]);
+	if (isset($_GET["page_number"])) {
+		$_GET["page_number"] = htmlspecialchars($_GET["page_number"]);
+	} else {
+		$_GET["page_number"] = "";
+	}
 	$scriptname = htmlspecialchars($scriptname);
 	
 	if (!isset($_GET["activeonly"]))
