@@ -29,7 +29,7 @@ if (!$_SESSION['admin_logged_in'])
 
 <?php
 
-if ($_FILES["zipfile"]["error"] != 4 && isset($_FILES["zipfile"]["tmp_name"])) //4 corresponds to the error no file uploaded
+if (isset($_FILES["zipfile"]) && $_FILES["zipfile"]["error"] != 4 && isset($_FILES["zipfile"]["tmp_name"])) //4 corresponds to the error no file uploaded
 {
 	?>
 	<a href="admin.php"><img src="images/admin.png" border="0" class="icon" alt="Admin Page" title="Admin Page" /></a><a href="admin.php">Return to Admin Page</a>
@@ -163,7 +163,7 @@ else
 	files before you zip and upload the file.  If you are uploading a very large zip file this may take some time...</p>
 	
 	<?php
-	if (function_exists(zip_open))
+	if (function_exists("zip_open"))
 	{
 		?>
 		<form enctype="multipart/form-data" action="<?php echo $_SERVER["PHP_SELF"];?>" method="post">
