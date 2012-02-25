@@ -561,15 +561,15 @@ exit;
 			<br>
 			<form method="post" action="<?php echo $_SERVER["PHP_SELF"];?>">
 			<input type="hidden" name="download" value="1">
-			<input type="hidden" name="hiddentracker" value="<?php if ($_POST['hiddentracker'] == 'on') echo 'true'; else echo 'false';?>">
-			<input type="hidden" name="scrape" value="<?php if ($_POST['scrape'] == 'on') echo 'true'; else echo 'false';?>">
+			<input type="hidden" name="hiddentracker" value="<?php if (isset($_POST['hiddentracker']) AND $_POST['hiddentracker'] == 'on') echo 'true'; else echo 'false';?>">
+			<input type="hidden" name="scrape" value="<?php if (isset($_POST['scrape']) AND $_POST['scrape'] == 'on') echo 'true'; else echo 'false';?>">
 			<input type="hidden" name="report_interval" value="<?php echo $_POST['report_interval'];?>">
 			<input type="hidden" name="min_interval" value="<?php echo $_POST['min_interval'];?>">
 			<input type="hidden" name="maxpeers" value="<?php echo $_POST['maxpeers'];?>">
-			<input type="hidden" name="NAT" value="<?php if ($_POST['NAT'] == 'on') echo 'true'; else echo 'false';?>">
-			<input type="hidden" name="persist" value="<?php if ($_POST['persist'] == 'on') echo 'true'; else echo 'false';?>">
-			<input type="hidden" name="ip_override" value="<?php if ($_POST['ip_override'] == 'on') echo 'true'; else echo 'false';?>">
-			<input type="hidden" name="countbytes" value="<?php if ($_POST['countbytes'] == 'on') echo 'true'; else echo 'false';?>">
+			<input type="hidden" name="NAT" value="<?php if (isset($_POST['NAT']) AND $_POST['NAT'] == 'on') echo 'true'; else echo 'false';?>">
+			<input type="hidden" name="persist" value="<?php if (isset($_POST['persist']) AND $_POST['persist'] == 'on') echo 'true'; else echo 'false';?>">
+			<input type="hidden" name="ip_override" value="<?php if (isset($_POST['ip_override']) AND $_POST['ip_override'] == 'on') echo 'true'; else echo 'false';?>">
+			<input type="hidden" name="countbytes" value="<?php if (isset($_POST['countbytes']) AND $_POST['countbytes'] == 'on') echo 'true'; else echo 'false';?>">
 			<input type="hidden" name="upload_username" value="<?php echo $_POST['upload_username'];?>">
 			<input type="hidden" name="upload_password" value="<?php echo md5($_POST["upload_username"].$_POST["upload_password"]);?>">
 			<input type="hidden" name="admin_username" value="<?php echo $_POST['admin_username'];?>">
@@ -579,7 +579,7 @@ exit;
 			<input type="hidden" name="dbuser" value="<?php echo $_POST['dbuser'];?>">
 			<input type="hidden" name="dbpass" value="<?php echo $_POST['dbpass'];?>">
 			<input type="hidden" name="database" value="<?php echo $_POST['database'];?>">
-			<input type="hidden" name="enablerss" value="<?php if ($_POST['enablerss'] == 'on') echo 'true'; else echo 'false';?>">
+			<input type="hidden" name="enablerss" value="<?php if (isset($_POST['enablerss']) AND $_POST['enablerss'] == 'on') echo 'true'; else echo 'false';?>">
 			<input type="hidden" name="rss_title" value="<?php echo $_POST['rss_title'];?>">
 			<input type="hidden" name="rss_link" value="<?php echo $_POST['rss_link'];?>">
 			<input type="hidden" name="rss_description" value="<?php echo $_POST['rss_description'];?>">
