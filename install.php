@@ -69,7 +69,26 @@ exit;
 		<center>
 		<h1>RivetTracker Installer</h1>
 		<img src="images/install.png" border="0" class="icon" alt="RivetTracker Installation" title="RivetTracker Installation" />
-		</center>	
+		</center>
+
+		<?php
+		//Check PHP version
+		echo "<p>PHP Version: " . PHP_VERSION . "</p>";
+		//http://php.net/manual/en/function.version-compare.php
+		if (version_compare(PHP_VERSION, '5.0.0', '<')) {
+			echo "<p>You're not running PHP 5.0, you may have problems.</p>";
+		}
+		//Check for MySQL support
+		if (class_exists('mysqli') OR function_exists('mysql_connect')) {
+			echo "<p>MySQL Enabled: Yes</p>";
+		} else {
+			echo "<p>MySQL Enabled: No (this is a requirement)</p>";
+			echo "</body></html>";
+			exit();
+		}
+
+		?>
+		<br>
 		<form method="post" action="<?php echo $_SERVER["PHP_SELF"];?>">
 		<input type="hidden" name="started" value="1">
 		<h2>The MySQL database needs to be prepared for the tracker. This script will help
