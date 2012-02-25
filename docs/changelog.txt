@@ -2,6 +2,13 @@ RivetTracker is a modified version of PHPBTTracker Version 1.5rc3, written by "D
 
 Changes:
 
+---Version 1.03---
+
+-Prevented XSS attack on index.php page with htmlspecialchars (Thanks to report on forums)
+-Show message about folder permissions for 'torrents' and 'rss' when logged into admin.php main menu page
+-Changed install.php text at the end explaining folder permissions
+-Fixed rss_generator.php bug where torrents were not being ordered according to date (newest should be first)
+
 ---Version 1.02---
 
 -Fixed dltorrent.php bug where if the tracker was set to hidden, user was unable to download the torrent because of OR instead of AND in conditional check (Thanks to bug report on forums)

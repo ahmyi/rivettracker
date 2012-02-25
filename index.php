@@ -130,7 +130,11 @@ if (file_exists("rss/rss.xml"))
 
 <table>
 <tr>
-	<?php 
+	<?php
+	//Cleanup page number to prevent XSS
+	$_GET["page_number"] = htmlspecialchars($_GET["page_number"]);
+	$scriptname = htmlspecialchars($scriptname);
+	
 	if (!isset($_GET["activeonly"]))
 		$scriptname = $scriptname . "activeonly=	yes&amp;";
 	if (isset($_GET["seededonly"]) && !isset($_GET["activeonly"]))
@@ -147,6 +151,7 @@ if (file_exists("rss/rss.xml"))
 		echo "<td><a href=\"$scriptname\">Show only active torrents</a></td>\n";
 		
 	$scriptname = $_SERVER["PHP_SELF"] . "?";
+	$scriptname = htmlspecialchars($scriptname);
 	
 	if (!isset($_GET["seededonly"]))
 		$scriptname = $scriptname . "seededonly=yes&amp;";
@@ -164,6 +169,7 @@ if (file_exists("rss/rss.xml"))
 		echo "<td align=\"right\"><a href=\"$scriptname\">Show only seeded torrents</a></td>\n";
 		
 	$scriptname = $_SERVER["PHP_SELF"] . "?";
+	$scriptname = htmlspecialchars($scriptname);
 	
 	?>
 </tr>
@@ -329,7 +335,7 @@ if ($GLOBALS["countbytes"]) //stop count bytes variable
 ?>
 	</tr></table></td></tr>
 	<tr class="details">
-		<td align="left"><a href="http://www.rivetcode.com">RivetTracker</a> Version: 1.02</td>
+		<td align="left"><a href="http://www.rivetcode.com">RivetTracker</a> Version: 1.03</td>
 		<?php
 		if (file_exists("legalterms.txt"))
 			echo "<td align=\"right\"><a href=\"legalterms.txt\">Use Policy and Terms of Service</a></td>";

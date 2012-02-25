@@ -12,7 +12,7 @@ require_once ("funcsv2.php");
 //connect to database
 $db = mysql_connect($dbhost, $dbuser, $dbpass) or die(errorMessage() . "Cannot connect to database. Check your username and password in the config file.</p>");
 mysql_select_db($database) or die(errorMessage() . "Error selecting database.</p>");
-$query = "SELECT filename,url,size,pubDate FROM ".$prefix."namemap";
+$query = "SELECT filename,url,size,pubDate FROM ".$prefix."namemap ORDER BY pubDate DESC";
 $results = mysql_query($query) or die(errorMessage() . "Can't do SQL query - " . mysql_error() . "</p>");
 
 //if there are no entries in database or RSS feed is disabled in config.php file, delete rss.xml file

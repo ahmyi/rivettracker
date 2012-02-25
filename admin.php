@@ -45,6 +45,16 @@ if (file_exists("install.php"))
 	echo errorMessage() . "Your install.php file has NOT been deleted.  This is a security risk, please delete it immediately.</p>\n";
 }
 
+if (!is_writeable("./torrents/"))
+{
+	echo errorMessage() . "The 'torrents' folder does not have write access, check the permissions.</p>\n";
+}
+
+if (!is_writeable("./rss/"))
+{
+	echo errorMessage() . "The 'rss' folder does not have write access, check the permissions.</p>\n";
+}
+
 ?>
 </body>
 </html>

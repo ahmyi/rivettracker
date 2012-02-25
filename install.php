@@ -571,7 +571,7 @@ exit;
 
 		//display message to delete install.php file
 		echo "<p class=\"error\">Make sure you go and delete this installer script when you are done! (install.php)</p><br><br>\n";
-		echo "<p class=\"error\">Also, make sure the 'rss' folder is able to be written to by 'www-data' if you are using Apache or whoever the user is.</p><br><br>\n";
+		echo "<p class=\"error\">Also, check the permissions and make sure the 'torrents' and 'rss' folders are able to be written to by the server.</p><br><br>\n";
 		echo "<br><center><a href=\"index.php\">Main Statistics Page</a></center>\n";		
 		echo "</body></html>\n";
 	}
