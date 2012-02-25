@@ -107,7 +107,7 @@ if ($data[0] != null) //if there are no torrents in database, don't show anythin
 if ($hiddentracker == true)
 {
 	echo "Hello, <i>" . $_SESSION["username"] . "</i><br>";
-	echo "<a href=\"authenticate?status=logout\"><img src=\"images/logout.png\" border=\"0\" class=\"icon\" alt=\"Logout\" title=\"Logout\" /></a><a href=\"authenticate?status=logout\">Logout</a>";
+	echo "<a href=\"authenticate.php?status=logout\"><img src=\"images/logout.png\" border=\"0\" class=\"icon\" alt=\"Logout\" title=\"Logout\" /></a><a href=\"authenticate.php?status=logout\">Logout</a>";
 }
 ?>
 </td>
@@ -229,14 +229,14 @@ echo "</p>\n";
 	
 <?php
 if (!isset($_GET["page_number"]))
-	$query = "SELECT ".$prefix."summary.info_hash, ".$prefix."summary.seeds, ".$prefix."summary.leechers, format(".$prefix."summary.finished,0), ".$prefix."summary.dlbytes, ".$prefix."namemap.filename, ".$prefix."namemap.url, ".$prefix."namemap.size, ".$prefix."summary.speed FROM ".$prefix."summary LEFT JOIN ".$prefix."namemap ON ".$prefix."summary.info_hash = ".$prefix."namemap.info_hash $where ORDER BY ".$prefix."namemap.filename LIMIT 0,10";
+	$query = "SELECT ".$prefix."summary.info_hash, ".$prefix."summary.seeds, ".$prefix."summary.leechers, ".$prefix."summary.finished, ".$prefix."summary.dlbytes, ".$prefix."namemap.filename, ".$prefix."namemap.url, ".$prefix."namemap.size, ".$prefix."summary.speed FROM ".$prefix."summary LEFT JOIN ".$prefix."namemap ON ".$prefix."summary.info_hash = ".$prefix."namemap.info_hash $where ORDER BY ".$prefix."namemap.filename LIMIT 0,10";
 else
 {
 	if ($_GET["page_number"] <= 0) //account for possible negative number entry by user
 		$_GET["page_number"] = 1;
 	
 	$page_limit = ($_GET["page_number"] - 1) * 10;
-	$query = "SELECT ".$prefix."summary.info_hash, ".$prefix."summary.seeds, ".$prefix."summary.leechers, format(".$prefix."summary.finished,0), ".$prefix."summary.dlbytes, ".$prefix."namemap.filename, ".$prefix."namemap.url, ".$prefix."namemap.size, ".$prefix."summary.speed FROM ".$prefix."summary LEFT JOIN ".$prefix."namemap ON ".$prefix."summary.info_hash = ".$prefix."namemap.info_hash $where ORDER BY ".$prefix."namemap.filename LIMIT $page_limit,10";
+	$query = "SELECT ".$prefix."summary.info_hash, ".$prefix."summary.seeds, ".$prefix."summary.leechers, ".$prefix."summary.finished, ".$prefix."summary.dlbytes, ".$prefix."namemap.filename, ".$prefix."namemap.url, ".$prefix."namemap.size, ".$prefix."summary.speed FROM ".$prefix."summary LEFT JOIN ".$prefix."namemap ON ".$prefix."summary.info_hash = ".$prefix."namemap.info_hash $where ORDER BY ".$prefix."namemap.filename LIMIT $page_limit,10";
 }
 
 $results = mysql_query($query) or die(errorMessage() . "Can't do SQL query - " . mysql_error() . "</p>");
@@ -329,7 +329,7 @@ if ($GLOBALS["countbytes"]) //stop count bytes variable
 ?>
 	</tr></table></td></tr>
 	<tr class="details">
-		<td align="left"><a href="http://www.rivetcode.com">RivetTracker</a> Version: 1.0</td>
+		<td align="left"><a href="http://www.rivetcode.com">RivetTracker</a> Version: 1.01</td>
 		<?php
 		if (file_exists("legalterms.txt"))
 			echo "<td align=\"right\"><a href=\"legalterms.txt\">Use Policy and Terms of Service</a></td>";

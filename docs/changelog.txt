@@ -2,6 +2,11 @@ RivetTracker is a modified version of PHPBTTracker Version 1.5rc3, written by "D
 
 Changes:
 
+---Version 1.01---
+
+-Fixed index.php page where authenticate.php link didn't have PHP file extension (Thanks to bug report from Johannes)
+-Fixed MySQL formatting finished downloads with thousands and PHP not being able to recognize this correctly (Thanks to bug report on forums)
+
 ---Version 1.0---
 
 -Changed database engine from default MyISAM to InnoDB, hopefully this will prevent table crashes
