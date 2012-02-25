@@ -329,7 +329,7 @@ if ($GLOBALS["countbytes"]) //stop count bytes variable
 ?>
 	</tr></table></td></tr>
 	<tr class="details">
-		<td align="left"><a href="http://www.rivetcode.com">RivetTracker</a> Version: 1.01</td>
+		<td align="left"><a href="http://www.rivetcode.com">RivetTracker</a> Version: 1.02</td>
 		<?php
 		if (file_exists("legalterms.txt"))
 			echo "<td align=\"right\"><a href=\"legalterms.txt\">Use Policy and Terms of Service</a></td>";

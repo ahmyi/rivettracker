@@ -2,6 +2,10 @@ RivetTracker is a modified version of PHPBTTracker Version 1.5rc3, written by "D
 
 Changes:
 
+---Version 1.02---
+
+-Fixed dltorrent.php bug where if the tracker was set to hidden, user was unable to download the torrent because of OR instead of AND in conditional check (Thanks to bug report on forums)
+
 ---Version 1.01---
 
 -Fixed index.php page where authenticate.php link didn't have PHP file extension (Thanks to bug report from Johannes)

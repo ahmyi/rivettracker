@@ -7,7 +7,7 @@ if ($hiddentracker == true)
 {
 	session_start();
 	
-	if (!$_SESSION['admin_logged_in']) || !$_SESSION['upload_logged_in'])
+	if (!$_SESSION['admin_logged_in'] && !$_SESSION['upload_logged_in'])
 	{
 		//check fails
 		header("Location: authenticate.php?status=error");
