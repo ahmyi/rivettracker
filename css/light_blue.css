@@ -1,0 +1,95 @@
+th { /* Table Header */
+	background-color: #CCCC99;
+	padding: 4px;
+	border-bottom: 2px solid #664D33;
+}
+th.subheader { /* Sub-Table Header */
+	background-color: #99FF99;
+	border-bottom: 2px solid #336633;
+}
+tr.selected {
+        background-color: #FFCC00;
+        color: #000000;
+}
+tr.row0 {
+	background-color: #A7BCD3;
+}
+tr.row0 a:link {color: #000770}
+tr.row0 a:visited {color: #000770}
+tr.row0 a:active  {color: #000770}
+tr.row0 a:hover   {color: #000770}
+tr.row1 {
+	background-color: #8AA9C6;
+}
+tr.row1 a:link {color: #000770}
+tr.row1 a:visited {color: #000770}
+tr.row1 a:active  {color: #000770}
+tr.row1 a:hover   {color: #000770}
+td.percent {
+	background-color: #33CC33;
+}
+td.percentleft {
+	background-color: #CCCCCC;
+}
+img.icon { 
+	vertical-align: middle;
+	padding: 4px;
+}
+body {
+	font: 12pt sans-serif;
+	background-color: #99B2CC;
+	color: #000000;
+}
+h1 { /* Tracker Header/Title */
+	font: 24px verdana, sans-serif;
+	text-align: center;
+}
+h2 { /* Smaller Page Headers */
+	font: 18px verdana, sans-serif;
+}
+a {
+	color: #000770;
+	text-decoration: none;
+	background-color: transparent;
+}
+a:hover {
+	text-decoration: underline;
+}
+table.percentages {
+	width: 200px;
+}
+table.torrentlist td {
+	padding: 4px;
+}
+table.nopadding td {
+	padding: 0px;
+}
+.details {
+	font: 12px verdana, sans-serif;
+	height: 0px;
+}
+p.error {
+	color: red;
+	text-align: center;
+	font-weight: bold;
+}
+p.success {
+	color: green;
+	text-align: center;
+	font-weight: bold;
+}	
+table {
+	width: 100%;
+}
+.center {	
+	text-align: center; 
+}
+.left {
+	text-align: left;
+}
+.right {
+	text-align: right;
+}
+span.notice {
+	color: #FF0000;
+}
