@@ -263,10 +263,20 @@ if (isset($_FILES["torrent"]) || isset($_POST["url"]) || isset($_GET["url"]))
 		 	exit;	                
 		}
 
-		echo "<br><h2>Non-file data:</h2>";
+		echo "<br><h2>Non-file data:</h2>\n";
 		echo "<table border=0 cellpadding=2 cellspacing=2><tr>";
 		echo "<td align=right>Info hash</td><td>=</td><td><TT>$infohash</TT></td></tr>\n";
-		echo "<tr><td align=right>Announce URL</td><td>=</td><td>".$array["announce"]."</td></tr>\n";
+		echo "<tr><td align=right>Announce URL(s)</td><td>=</td><td>";
+		if (isset($array["announce-list"])) {
+			for ($i = 0; $i < count($array["announce-list"]); $i++) {
+				echo $array["announce-list"][$i][0] . "<br>";
+			}
+		} else {
+			//single tracker
+			echo $array["announce"];
+		}
+		echo "</td></tr>\n";
+
 		if (isset($array["creation date"]))
 		{
 			echo "<tr><td align=right>Creation date</td><td>=</td><td>";
@@ -283,7 +293,7 @@ if (isset($_FILES["torrent"]) || isset($_POST["url"]) || isset($_GET["url"]))
 
 		foreach ($array as $left => $right)
 		{
-			if ($left == "announce" || $left == "info" || $left == "creation date")
+			if ($left == "announce" || $left == "info" || $left == "creation date" || $left == "announce-list")
 				continue; // skip
 			if ($left == "url-list" || $left == "httpseeds")
 			{
@@ -377,7 +387,7 @@ if (isset($_FILES["torrent"]) || isset($_POST["url"]) || isset($_GET["url"]))
 	{
 		echo "<a href=\"newtorrents.php\"><img src=\"images/add.png\" border=\"0\" class=\"icon\" alt=\"Add Torrent\" title=\"Add Torrent\" /></a><a href=\"newtorrents.php\">Add Another Torrent</a><br>\n";
 		//add in Bittornado HTTP seeding spec
-		if ($_POST["httpseed"] == "enabled")
+		if (isset($_POST["httpseed"]) && $_POST["httpseed"] == "enabled")
 		{
 			//add information into database
 			$info = $array["info"] or die("Invalid torrent file.");
@@ -437,7 +447,7 @@ if (isset($_FILES["torrent"]) || isset($_POST["url"]) || isset($_GET["url"]))
 				mysql_query("INSERT INTO ".$prefix."webseedfiles (info_hash,filename,startpiece,endpiece,startpieceoffset,fileorder) values (\"$hash\", \"".mysql_real_escape_string($fsbase)."\", 0, ". (strlen($array["info"]["pieces"])/20 - 1).", 0, 0)");
 		}
 		
-		if ($_POST["getrightseed"] == "enabled" || $_POST["httpseed"] == "enabled") //only do one write
+		if ((isset($_POST["getrightseed"]) && $_POST["getrightseed"] == "enabled") || (isset($_POST["httpseed"]) && $_POST["httpseed"] == "enabled")) //only do one write
 		{
 			//edit torrent file
 			$read_httpseed = fopen("torrents/" . $filename . ".torrent", "rb");

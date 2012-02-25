@@ -58,19 +58,39 @@ function addTorrent()
 			endOutput();
 			exit;
 		}
-		if (strtolower($array["announce"]) != $tracker_url)
-		{
-			echo errorMessage() . "Error: The tracker announce URL does not match this:<br>$tracker_url<br>Please re-create and re-upload the torrent.</p>\n";
-			endOutput();
-			exit;
+
+		if (isset($array["announce-list"])) {
+			//multiple trackers are listed
+			$found_tracker = false;
+			for ($i = 0; $i < count($array["announce-list"]); $i++) {
+				if (strtolower($array["announce-list"][$i][0]) == $tracker_url) {
+					$found_tracker = true;
+					break;
+				}
+			}
+			if ($found_tracker == false)
+			{
+				echo errorMessage() . "Error: Multiple trackers were found but none of them match the
+					announce URL:<br>$tracker_url<br>Please re-create and re-upload the torrent.</p>\n";
+				endOutput();
+				exit;
+			}
+		} else {
+			//a single tracker is listed
+			if (strtolower($array["announce"]) != $tracker_url) {
+				echo errorMessage() . "Error: The tracker announce URL does not match this:<br>$tracker_url<br>Please re-create and re-upload the torrent.</p>\n";
+				endOutput();
+				exit;
+			}
 		}
-		if ($_POST["httpseed"] == "enabled" && $_POST["relative_path"] == "")
+
+		if (isset($_POST["httpseed"]) && $_POST["httpseed"] == "enabled" && $_POST["relative_path"] == "")
 		{
 			echo errorMessage() . "Error: HTTP seeding was checked however no relative path was given.</p>\n";
 			endOutput();
 			exit;
 		}
-		if ($_POST["httpseed"] == "enabled" && $_POST["relative_path"] != "")
+		if (isset($_POST["httpseed"]) && $_POST["httpseed"] == "enabled" && $_POST["relative_path"] != "")
 		{
 			if (Substr($_POST["relative_path"], -1) == "/")
 			{
@@ -91,13 +111,15 @@ function addTorrent()
 				}
 			}
 		}
-		if ($_POST["getrightseed"] == "enabled" && $_POST["httpftplocation"] == "")
+		if (isset($_POST["getrightseed"]) && $_POST["getrightseed"] == "enabled" && $_POST["httpftplocation"] == "")
 		{
 			echo errorMessage() . "Error: GetRight HTTP seeding was checked however no URL was given.</p>\n";
 			endOutput();
 			exit;
 		}
-		if ($_POST["getrightseed"] == "enabled" && (Substr($_POST["httpftplocation"], 0, 7) != "http://" && Substr($_POST["httpftplocation"], 0, 6) != "ftp://"))
+		if (isset($_POST["getrightseed"]) && $_POST["getrightseed"] == "enabled" &&
+			(Substr($_POST["httpftplocation"], 0, 7) != "http://" && Substr($_POST["httpftplocation"], 0, 6) != "ftp://")
+		)
 		{
 			echo errorMessage() . "Error: GetRight HTTP seeding URL must start with http:// or ftp://</p>\n";
 			endOutput();
