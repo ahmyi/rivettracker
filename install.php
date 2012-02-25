@@ -162,7 +162,13 @@ exit;
 		</form></body></html>
 		<?php exit;
 	}
-	$prefix = $_POST["prefix"];
+
+	if (isset($_POST["prefix"])) {
+		$prefix = $_POST["prefix"];
+	} else {
+		$prefix = "";
+	}
+
 	$makenamemap= 'CREATE TABLE ' . $prefix . 'namemap (info_hash char(40) NOT NULL default "", filename varchar(250) NOT NULL default "", url varchar(250) NOT NULL default "", size bigint(20) unsigned NOT NULL, pubDate varchar(25) NOT NULL default "", PRIMARY KEY(info_hash)) ENGINE = innodb'; 	
 	$makesummary = 'CREATE TABLE ' . $prefix . 'summary (info_hash char(40) NOT NULL default "", dlbytes bigint unsigned NOT NULL default 0, seeds int unsigned NOT NULL default 0, leechers int unsigned NOT NULL default 0, finished int unsigned NOT NULL default 0, lastcycle int unsigned NOT NULL default "0", lastSpeedCycle int unsigned NOT NULL DEFAULT "0", speed bigint unsigned NOT NULL default 0, piecelength int(11) NOT NULL default -1, numpieces int(11) NOT NULL default 0, PRIMARY KEY (info_hash)) ENGINE = innodb';
 	$maketimestamps = 'CREATE TABLE ' . $prefix . 'timestamps (info_hash char(40) not null, sequence int unsigned not null auto_increment, bytes bigint unsigned not null, delta smallint unsigned not null, primary key(sequence), key sorting (info_hash)) ENGINE = innodb';
