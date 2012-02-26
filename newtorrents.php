@@ -22,7 +22,7 @@ if (!$_SESSION['admin_logged_in'] && !$_SESSION['upload_logged_in'])
 <body>
 
 <?php
-$tracker_url = $website_url . substr($_SERVER['REQUEST_URI'], 0, -15) . "announce.php";
+$tracker_url = $website_url . substr($_SERVER['PHP_SELF'], 0, -15) . "announce.php";
 
 if (isset($_FILES["torrent"]))
 	addTorrent();
@@ -34,7 +34,7 @@ endOutput();
 function addTorrent()
 {
 	require ("config.php");
-	$tracker_url = $website_url . substr($_SERVER['REQUEST_URI'], 0, -15) . "announce.php";
+	$tracker_url = $website_url . substr($_SERVER['PHP_SELF'], 0, -15) . "announce.php";
 	
 	$hash = strtolower($_POST["hash"]);
 
@@ -227,7 +227,7 @@ function addTorrent()
 function endOutput() 
 {
 	require ("config.php");
-	$tracker_url = $website_url . substr($_SERVER['REQUEST_URI'], 0, -15) . "announce.php";
+	$tracker_url = $website_url . substr($_SERVER['PHP_SELF'], 0, -15) . "announce.php";
 	?>
 	<p align="right"><a href="./docs/help.html"><img src="images/help.png" border="0" class="icon" alt="Help" title="Help" /></a><a href="./docs/help.html">Help</a></p>
 	<div class="center">

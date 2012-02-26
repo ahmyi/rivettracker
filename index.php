@@ -276,9 +276,26 @@ while ($data = mysql_fetch_row($results)) {
 	else
 		echo $data[5] . " - ";
 	if ($hiddentracker == true) //obscure direct link to torrent, use dltorrent.php script
-		echo "<a href=\"dltorrent.php?hash=" . $myhash . "\">  (Download Torrent)</a></td></tr>";
+		echo "<a href=\"dltorrent.php?hash=" . $myhash . "\">  (Download Torrent)</a>";
 	else //just display ordinary direct link
-		echo "<a href=\"torrents/" . rawurlencode($data[5]) . ".torrent\">  (Download Torrent)</a></td></tr>";
+		echo "<a href=\"torrents/" . rawurlencode($data[5]) . ".torrent\">  (Download Torrent)</a>";
+
+	//Magnet link
+	echo "<a href='";
+		//https://en.wikipedia.org/wiki/Magnet_URI_scheme
+		//Base-32 encoded SHA1 hash sum
+		echo "magnet:?xt=urn:btih:".$data[0];
+		//name
+		echo "&dn=".$data[5];
+		//tracker url
+		echo "&tr=".$website_url . substr($_SERVER['PHP_SELF'], 0, -9) . "announce.php";
+	echo "'>(Magnet";
+	echo "<img src='images/magnet-icon.gif' border='0' class='icon' alt='Magnet Link' title='Magnet Link' />";
+	echo ")</a>";
+
+	echo "</td></tr>";
+
+
 	if (strlen($data[7]) > 0) //show file size
 	{
 		echo "<tr><td>&nbsp;</td><td>" . bytesToString($data[7]) . "</td>";
