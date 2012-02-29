@@ -232,9 +232,9 @@ function start($info_hash, $ip, $port, $peer_id, $left)
 	}
 	$GLOBALS["trackerid"] = mysql_insert_id();
 
-	$compact = mysql_escape_string(utf8_encode(pack('Nn', ip2long($ip), $port)));
-	$peerid = mysql_escape_string('2:ip' . strlen($ip) . ':' . $ip . '7:peer id20:' . hex2bin($peer_id) . "4:porti{$port}e");
-	$no_peerid = mysql_escape_string('2:ip' . strlen($ip) . ':' . $ip . "4:porti{$port}e");
+	$compact = mysql_real_escape_string(pack('Nn', ip2long($ip), $port));
+	$peerid = mysql_real_escape_string('2:ip' . strlen($ip) . ':' . $ip . '7:peer id20:' . hex2bin($peer_id) . "4:porti{$port}e");
+	$no_peerid = mysql_real_escape_string('2:ip' . strlen($ip) . ':' . $ip . "4:porti{$port}e");
 	mysql_query("INSERT INTO ".$prefix."y$info_hash SET sequence=\"{$GLOBALS["trackerid"]}\", compact=\"$compact\", with_peerid=\"$peerid\", without_peerid=\"$no_peerid\"");
 	// Let's just assume success... :/
 

@@ -105,13 +105,13 @@ function makeTorrent($hash, $tolerate = false)
 	if (strlen($hash) != 40)
 		showError("makeTorrent: Received an invalid hash");
 	$result = true;
-	$query = "CREATE TABLE ".$prefix."x$hash (peer_id char(40) NOT NULL default '', bytes bigint NOT NULL default 0, ip char(50) NOT NULL default 'error.x', port smallint UNSIGNED NOT NULL default \"0\", status enum('leecher','seeder') NOT NULL, lastupdate int unsigned NOT NULL default 0, sequence int unsigned AUTO_INCREMENT NOT NULL, natuser enum('N', 'Y') not null default 'N', primary key(sequence), unique(peer_id)) ENGINE = innodb";
+	$query = "CREATE TABLE ".$prefix."x$hash (peer_id char(40) NOT NULL default '', bytes bigint NOT NULL default 0, ip char(50) NOT NULL default 'error.x', port smallint UNSIGNED NOT NULL default \"0\", status enum('leecher','seeder') NOT NULL, lastupdate int unsigned NOT NULL default 0, sequence int unsigned AUTO_INCREMENT NOT NULL, natuser enum('N', 'Y') not null default 'N', primary key(sequence), unique(peer_id)) DEFAULT CHARACTER SET utf8 DEFAULT COLLATE utf8_general_ci ENGINE = innodb";
 	if (!@mysql_query($query))
 		$result = false;
 	if (!$result && !$tolerate)
 		return false;
 	//peercaching is ALWAYS on
-	$query = "CREATE TABLE ".$prefix."y$hash (sequence int unsigned NOT NULL default 0, with_peerid char(101) NOT NULL default '', without_peerid char(40) NOT NULL default '', compact char(12) NOT NULL DEFAULT '', unique k (sequence)) DELAY_KEY_WRITE=1 CHECKSUM=0 ENGINE = innodb";
+	$query = "CREATE TABLE ".$prefix."y$hash (sequence int unsigned NOT NULL default 0, with_peerid char(101) NOT NULL default '', without_peerid char(40) NOT NULL default '', compact char(6) NOT NULL DEFAULT '', unique k (sequence)) DELAY_KEY_WRITE=1 CHECKSUM=0 DEFAULT CHARACTER SET utf8 DEFAULT COLLATE utf8_general_ci ENGINE = innodb";
 	mysql_query($query);
 		
 	$query = "INSERT INTO ".$prefix."summary set info_hash=\"".$hash."\", lastSpeedCycle=UNIX_TIMESTAMP()";
@@ -356,7 +356,7 @@ function sendRandomPeers($info_hash)
 	{
 		echo (mysql_num_rows($result) * 6) . ":";
 		while ($row = mysql_fetch_row($result))
-			echo str_pad(utf8_decode($row[0]), 6, chr(32));
+			echo str_pad($row[0], 6, chr(32));
 	}
 	else
 	{
