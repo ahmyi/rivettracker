@@ -84,7 +84,7 @@ if (isset($_FILES["zipfile"]) && $_FILES["zipfile"]["error"] != 4 && isset($_FIL
 						//a single tracker is listed
 						if (strtolower($array["announce"]) != $tracker_url) {
 							echo errorMessage() . "Error: The tracker announce URL does not match this:<br>$tracker_url<br>Please re-create and re-upload the torrent.</p>\n";
-							endOutput();
+							$error_status = false;
 							exit;
 						}
 					}
