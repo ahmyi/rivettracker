@@ -64,10 +64,29 @@ if (isset($_FILES["zipfile"]) && $_FILES["zipfile"]["error"] != 4 && isset($_FIL
 						echo errorMessage() . "Error: The parser was unable to load this torrent.</p>\n";
 						$error_status = false;
 					}
-					if (strtolower($array["announce"]) != $tracker_url)
-					{
-						echo errorMessage() . "Error: The tracker announce URL does not match this:<br>$tracker_url<br>Please re-create and re-upload the torrent.</p>\n";
-						$error_status = false;
+					if (isset($array["announce-list"])) {
+						//multiple trackers are listed
+						$found_tracker = false;
+						for ($i = 0; $i < count($array["announce-list"]); $i++) {
+							if (strtolower($array["announce-list"][$i][0]) == $tracker_url) {
+								$found_tracker = true;
+								break;
+							}
+						}
+						if ($found_tracker == false)
+						{
+							echo errorMessage() . "Error: Multiple trackers were found but none of them match the
+								announce URL:<br>$tracker_url<br>Please re-create and re-upload the torrent.</p>\n";
+							$error_status = false;
+							exit;
+						}
+					} else {
+						//a single tracker is listed
+						if (strtolower($array["announce"]) != $tracker_url) {
+							echo errorMessage() . "Error: The tracker announce URL does not match this:<br>$tracker_url<br>Please re-create and re-upload the torrent.</p>\n";
+							endOutput();
+							exit;
+						}
 					}
 					if (function_exists("sha1"))
 						$hash = @sha1(BEncode($array["info"]));
