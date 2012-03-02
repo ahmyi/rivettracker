@@ -56,7 +56,7 @@ if (isset($_FILES["zipfile"]) && $_FILES["zipfile"]["error"] != 4 && isset($_FIL
 					require_once ("BDecode.php");
 					require_once ("BEncode.php");
 					
-					$tracker_url = $website_url . substr($_SERVER['REQUEST_URI'], 0, -16) . "announce.php";
+					$tracker_url = $website_url . substr($_SERVER['REQUEST_URI'], 0, -16) . $announceurl;
 					
 					$array = BDecode($buffer);
 					if (!$array)
@@ -175,11 +175,15 @@ else
 {
 	//display upload box
 	?>
+	<?php require("config.php"); $tracker_url = $website_url . substr($_SERVER['REQUEST_URI'], 0, -16) . $announceurl; ?>
 	<p>This page lets you upload a zip file containing multiple torrents and add them into the database.  The
 	zip file cannot have any folders in it.  This requires that you are running PHP with compiled zip support.
 	If you are unsure, check with your system administrator or phpinfo().  Any torrents that already exist in
 	the database will be skipped.  If you want to use HTTP seeding you'll need to add this feature to the torrent
-	files before you zip and upload the file.  If you are uploading a very large zip file this may take some time...</p>
+	files before you zip and upload the file.  If you are uploading a very large zip file this may take some time...
+	<br>
+	<br>
+	The torrents you are batch uploading should include the following Tracker URL: <b><?php echo $tracker_url ?></b></p>
 	
 	<?php
 	if (function_exists("zip_open"))

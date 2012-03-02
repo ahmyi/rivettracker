@@ -127,9 +127,12 @@ check the appropriate box in the configuration settings.  It is generally safe t
 there is the possiblity that BitTorrent clients could use this abusively and request this information too much.
 For trackers that serve large numbers of torrents with many users, this will also increase bandwidth usage.
 Scraping is used in order to figure out if a request for additional peers is warranted.  This request for peers
-eats up a lot of bandwidth and it is usually better to try to guage this by asking the tracker via a scrape.</p>
+eats up a lot of bandwidth and it is usually better to try to gauge this by asking the tracker via a scrape.</p>
 <p>The speed information is a rough estimate and only gets updated when a client
 connects to the tracker.</p>
+<p>You can now utilize a short announce URL for your tracker.  If you enable this feature, you will need the provided
+htaccess file and URL rewriting capabilities enabled and set properly on your server.  More info to set it up will be
+located <a href="./htaccess-readme.txt">here.</a></p>
 <p>If you don't like the color scheme you can change it by editing the provided CSS file.
 Go into the admin page and click on "Change CSS File".  From there you will be able to create new
 CSS files or edit existing ones.</p>
