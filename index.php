@@ -281,14 +281,14 @@ while ($data = mysql_fetch_row($results)) {
 		echo "<a href=\"torrents/" . rawurlencode($data[5]) . ".torrent\">  (Download Torrent)</a>";
 
 	//Magnet link
-	echo "<a href='";
+	echo "&nbsp;<a href='";
 		//https://en.wikipedia.org/wiki/Magnet_URI_scheme
 		//Base-32 encoded SHA1 hash sum
 		echo "magnet:?xt=urn:btih:".$data[0];
 		//name
-		echo "&dn=".$data[5];
+		echo "&dn=".rawurlencode($data[5]);
 		//tracker url
-		echo "&tr=".$website_url . substr($_SERVER['PHP_SELF'], 0, -9) . "announce.php";
+		echo "&tr=".$website_url . substr($_SERVER['PHP_SELF'], 0, -9) . $announceurl;
 	echo "'>(Magnet";
 	echo "<img src='images/magnet-icon.gif' border='0' class='icon' alt='Magnet Link' title='Magnet Link' />";
 	echo ")</a>";
@@ -355,8 +355,10 @@ if ($GLOBALS["countbytes"]) //stop count bytes variable
 
 ?>
 	</tr></table></td></tr>
+<table>
 	<tr class="details">
 		<td align="left"><a href="http://www.rivetcode.com">RivetTracker</a> Version: 1.03</td>
+		<td align="right">
 		<?php
 		if (file_exists("legalterms.txt"))
 			echo "<td align=\"right\"><a href=\"legalterms.txt\">Use Policy and Terms of Service</a></td>";

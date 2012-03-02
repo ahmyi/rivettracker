@@ -60,7 +60,7 @@ if (!isset($_POST["editdatabase"]) && !isset($filename))
 
 if (isset($filename) && !isset($_POST["editdatabase"]))
 {
-	$query = "SELECT info_hash,filename,url,pubDate FROM ".$prefix."namemap WHERE filename = '" . $filename . "'";
+	$query = "SELECT info_hash,filename,url,pubDate FROM ".$prefix."namemap WHERE filename = '" . mysql_real_escape_string($filename) . "'";
 	$rows = mysql_query($query) or die(errorMessage() . "Can't do SQL query - " . mysql_error() . "</p>");
 	
 	$data = mysql_fetch_row($rows); //should be only one entry...
