@@ -124,12 +124,12 @@ exit;
 		</center>
 		<br><br>
 		<table border=0 cellpadding=5>
-		<tr><td align="right"><b>Database hostname:<br>(in MySQL format, example: localhost)</b></td><td align="left"><input type="text" name="host" value="localhost" size="40"></td></tr>
-		<tr><td align="right"><b>Tracker's database username:</b></td><td align="left"><input type="text" name="username" size="40"></td></tr>
-		<tr><td align="right"><b>Tracker's database password:</b></td><td align="left"><input type="password" name="password" size="40"></td></tr>
-		<tr><td align="right"><b>Database name:</b></td><td align="left"><input type="text" name="database" size="40"></td></tr>
-		<tr><td align="right"><b>Table Prefix:<br> (If you want to use an existing<br> database this will add the tables
-		in<br> with the specified prefix. If you<br> are unsure, leave this blank.)<br>e.g.: rt_</b></td><td align="left"><input type="text" name="prefix" size="40"></td></tr>
+		<tr><td align="right">Database hostname:<br>(in MySQL format, example: localhost)</td><td align="left"><input type="text" name="host" value="localhost" size="40"></td></tr>
+		<tr><td align="right">Tracker's database username:</td><td align="left"><input type="text" name="username" size="40"></td></tr>
+		<tr><td align="right">Tracker's database password:</td><td align="left"><input type="password" name="password" size="40"></td></tr>
+		<tr><td align="right">Database name:</td><td align="left"><input type="text" name="database" size="40"></td></tr>
+		<tr><td align="right">Table Prefix:<br> (If you want to use an existing<br> database this will add the tables
+		in<br> with the specified prefix. If you<br> are unsure, leave this blank.)<br>e.g.: rt_</td><td align="left"><input type="text" name="prefix" size="40"></td></tr>
 		</table>
 		<br><br>
 		<center>
@@ -151,12 +151,12 @@ exit;
 		</center>
 		<br><br>
 		<table border=0 cellpadding=5>
-		<tr><td align="right"><b>Username of database admin:</b></td><td align="left"><input type="text" name="adminname" size="40"></td></tr>
-		<tr><td align="right"><b>Password of database admin:</b></td><td align="left"><input type="password" name="adminpass" size="40"></td></tr>
-		<tr><td align="right"><b>Database hostname:<br>(in MySQL format, example: localhost)</b></td><td align="left"><input type="text" name="host" size="40" value="localhost"></td></tr>
-		<tr><td align="right"><b>Create user for MySQL:<br>(make sure this user does not already exist)</b></td><td align="left"><input type="text" name="username" size="40"></td></tr>
-		<tr><td align="right"><b>Password:</b></td><td align="left"><input type="password" name="password" size="40"></td></tr>
-		<tr><td align="right"><b>Create database (name):</b></td><td align="left"><input type="text" name="database" size="40"></td></tr>
+		<tr><td align="right">Username of database admin:</td><td align="left"><input type="text" name="adminname" size="40"></td></tr>
+		<tr><td align="right">Password of database admin:</td><td align="left"><input type="password" name="adminpass" size="40"></td></tr>
+		<tr><td align="right">Database hostname:<br>(in MySQL format, example: localhost)</td><td align="left"><input type="text" name="host" size="40" value="localhost"></td></tr>
+		<tr><td align="right">Create user for MySQL:<br>(make sure this user does not already exist)</td><td align="left"><input type="text" name="username" size="40"></td></tr>
+		<tr><td align="right">Password:</td><td align="left"><input type="password" name="password" size="40"></td></tr>
+		<tr><td align="right">Create database (name):</td><td align="left"><input type="text" name="database" size="40"></td></tr>
 		</table>
 		<br><br>
 		<center>		
@@ -250,16 +250,16 @@ exit;
 		<h2><span class="notice">*</span> - required value</h2>
 		<table border=1 cellpadding=3>
 		
-		<tr><td><b>Make tracker hidden: This will require a login by either the admin or upload user in order to
+		<tr><td>Make tracker hidden: This will require a login by either the admin or upload user in order to
 		see the torrents available on the main statistics page.  This does not mean it's a private tracker.  If you
 		need a private tracker, there are many other trackers out there.  Also, you will need to secure the "torrents"
 		folder with an .htaccess file for Apache or some other method.  The tracker will still accept all valid
-		connections by clients.  There is no user checking in that regard.</b></td>
+		connections by clients.  There is no user checking in that regard.</td>
 		<td><input type="checkbox" name="hiddentracker"></td></tr>
 		
-		<tr><td><b>Enable or disable scraping by clients.  Generally it is safe to leave this on unless
+		<tr><td>Enable or disable scraping by clients.  Generally it is safe to leave this on unless
 		you have a large number of torrents or users which can lead to increased bandwidth usage.  Also, scraping
-		can possibily be used maliciously by abusive clients.</b></td>
+		can possibily be used maliciously by abusive clients.</td>
 		<td><input type="checkbox" name="scrape" checked></td></tr>
 
 		<tr><td>Short Announce URL: You can enable the short announce feature, making the URL end in /announce for
@@ -273,90 +273,90 @@ exit;
 		</td>
 		</tr>
 
-		<tr><td><b><span class="notice">* </span>Lists the number of torrents on each page on your torrent tracker list.  Default is 10.</b></td>
+		<tr><td><span class="notice">* </span>Lists the number of torrents on each page on your torrent tracker list.  Default is 10.</td>
 		<td><input type="text" name="indexpagelimitspecify" size="40" value="10"></td></tr>
 
-		<tr><td><b><span class="notice">* </span>Lists the number of torrents on each page on the detailed statistics page.  Default is 5.</b></td>
+		<tr><td><span class="notice">* </span>Lists the number of torrents on each page on the detailed statistics page.  Default is 5.</td>
 		<td><input type="text" name="statspagelimitspecify" size="40" value="5"></td></tr>
 
-		<tr><td><b><span class="notice">* </span>Maximum reannounce interval (in seconds) 1800 == 30 minutes</b></td>
+		<tr><td><span class="notice">* </span>Maximum reannounce interval (in seconds) 1800 == 30 minutes</td>
 		<td><input type="text" name="report_interval" size="40" value="1800"></td></tr>
 
-		<tr><td><b><span class="notice">* </span>Minimum reannounce interval (also in seconds) 300 == 5 minutes</b></td>
+		<tr><td><span class="notice">* </span>Minimum reannounce interval (also in seconds) 300 == 5 minutes</td>
 		<td><input type="text" name="min_interval" size="40" value="300"></td></tr>
 
-		<tr><td><b><span class="notice">* </span>Number of peers to send in one request.  Some logic will break if you set this to more than 300,
-		so please don't do that. 100 is the most you should set anyway.</b></td>
+		<tr><td><span class="notice">* </span>Number of peers to send in one request.  Some logic will break if you set this to more than 300,
+		so please don't do that. 100 is the most you should set anyway.</td>
 		<td><input type="text" name="maxpeers" size="40" value="50"></td></tr>
 
-		<tr><td><b>If set, NAT checking will be performed.
+		<tr><td>If set, NAT checking will be performed.
 		This may cause trouble with some providers, so it's
-		off by default.</b></td>
+		off by default.</td>
 		<td><input type="checkbox" name="NAT"></td></tr>
 
-		<tr><td><b>Persistent MySQL connections:
+		<tr><td>Persistent MySQL connections:
 		Check with your webmaster to see if you're allowed to use these.
 		Highly recommended, especially for higher loads, but generally
-		not allowed unless it's a dedicated machine.</b></td>
+		not allowed unless it's a dedicated machine.</td>
 		<td><input type="checkbox" name="persist"></td></tr>
 
-		<tr><td><b>Allow users to override ip address.
+		<tr><td>Allow users to override ip address.
 		Enable this if you know people have a legit reason to use
-		this function. Leave disabled otherwise.</b></td>
+		this function. Leave disabled otherwise.</td>
 		<td><input type="checkbox" name="ip_override"></td></tr>
 
-		<tr><td><b>For heavily loaded trackers, uncheck this. It will stop count the number
+		<tr><td>For heavily loaded trackers, uncheck this. It will stop count the number
 		of downloaded bytes and the speed of the torrent, but will significantly reduce
-		the load.</b></td>
+		the load.</td>
 		<td><input type="checkbox" name="countbytes" checked></td></tr>
 
-		<tr><td><b><span class="notice">* </span>Username for individual who can add torrents to tracker database.
+		<tr><td><span class="notice">* </span>Username for individual who can add torrents to tracker database.
 		This user is only able to create, and not delete torrents to the tracker.
-		For full privileges, see the admin user.</b></td>
+		For full privileges, see the admin user.</td>
 		<td><input type="text" name="upload_username" size="40"></td></tr>
 
-		<tr><td><b><span class="notice">* </span>Password for individual who can add torrents to tracker database.
+		<tr><td><span class="notice">* </span>Password for individual who can add torrents to tracker database.
 		Again, this user is only able to create, and not delete torrents to the tracker.
-		For full privileges, see the admin user.</b></td>
+		For full privileges, see the admin user.</td>
 		<td><input type="password" name="upload_password" size="40"></td></tr>
 
-		<tr><td><b><span class="notice">* </span>Admin username. The admin is able to go to the admin page and show detailed 
+		<tr><td><span class="notice">* </span>Admin username. The admin is able to go to the admin page and show detailed 
 		information about the tracker as well as access a few other important tools.
 		The admin is also able to upload torrents to the database
-		just like the previous account.</b></td>
+		just like the previous account.</td>
 		<td><input type="text" name="admin_username" size="40"></td></tr>
 
-		<tr><td><b><span class="notice">* </span>Password for admin.  Again, The admin is able to go to the admin page and show detailed 
+		<tr><td><span class="notice">* </span>Password for admin.  Again, The admin is able to go to the admin page and show detailed 
 		information about the tracker as well as access a few other important tools.
-		The admin is also able to upload torrents to the database.</b></td>
+		The admin is also able to upload torrents to the database.</td>
 		<td><input type="password" name="admin_password" size="40"></td></tr>
 
-		<tr><td><b>Title on index.php statistics page, if not set, defaults to "Tracker Statistics"</b></td>
+		<tr><td>Title on index.php statistics page, if not set, defaults to "Tracker Statistics"</td>
 		<td><input type="text" name="title" size="40"></td></tr>
 		
-		<tr><td><b>Enable RSS feed: If you do not want the RSS feed to be created for 
-		privacy reasons or do not need it disable this checkbox.</b></td>
+		<tr><td>Enable RSS feed: If you do not want the RSS feed to be created for 
+		privacy reasons or do not need it disable this checkbox.</td>
 		<td><input type="checkbox" name="enablerss" checked></td></tr>
 		
-		<tr><td><b>RSS Title: In the rss.xml file, this is the main <pre>&lt;title&gt;</pre> tag.</b></td>
+		<tr><td>RSS Title: In the rss.xml file, this is the main <pre>&lt;title&gt;</pre> tag.</td>
 		<td><input type="text" name="rss_title" size="40"></td></tr>
 		
-		<tr><td><b>RSS link to main website: In the rss.xml file, this is the main <pre>&lt;link&gt;</pre> tag.</b></td>
+		<tr><td>RSS link to main website: In the rss.xml file, this is the main <pre>&lt;link&gt;</pre> tag.</td>
 		<td><input type="text" name="rss_link" size="40"></td></tr>
 		
-		<tr><td><b>RSS description: In the rss.xml file, this is the main <pre>&lt;description&gt;</pre> tag.</b></td>
+		<tr><td>RSS description: In the rss.xml file, this is the main <pre>&lt;description&gt;</pre> tag.</td>
 		<td><input type="text" name="rss_description" size="60"></td></tr>
 		
-		<tr><td><b><span class="notice">* </span>Main website url that the tracker runs on, example: http://www.mywebsite.com</b></td>
+		<tr><td><span class="notice">* </span>Main website url that the tracker runs on, example: http://www.mywebsite.com</td>
 		<td><input type="text" name="website_url" size="40"></td></tr>
 		
-		<tr><td><b><span class="notice">* </span>For HTTP seeding, this is the maximum total upload rate per second in kilobytes, for example 100 would be 100 KB/s</b></td>
+		<tr><td><span class="notice">* </span>For HTTP seeding, this is the maximum total upload rate per second in kilobytes, for example 100 would be 100 KB/s</td>
 		<td><input type="text" name="max_upload_rate" size="40" value="100"></td></tr>
 		
-		<tr><td><b><span class="notice">* </span>For HTTP seeding, this is the maximum number of uploads to run at a time</b></td>
+		<tr><td><span class="notice">* </span>For HTTP seeding, this is the maximum number of uploads to run at a time</td>
 		<td><input type="text" name="max_uploads" size="40" value="5"></td></tr>
 		
-		<tr><td><b><span class="notice">* </span>Timezone that the server runs on</b></td>
+		<tr><td><span class="notice">* </span>Timezone that the server runs on</td>
 		<td>
 		<select name="timezone" id="timezone">
 		<option title="[UTC - 12] Baker Island Time" value="-1200">[UTC - 12] Baker Island Time</option>
