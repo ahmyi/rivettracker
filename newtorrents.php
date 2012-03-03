@@ -234,7 +234,7 @@ function endOutput()
 	<div class="center">
 	<h1>Add Torrent to Tracker Database</h1>
 	<h3>Tracker URL: <?php echo $tracker_url;?></h3>
-	<form enctype="multipart/form-data" method="post" action="<?php echo $_SERVER['PHP_SELF']; ?>">
+	<form enctype="multipart/form-data" method="post" action="<?php echo htmlentities($_SERVER['PHP_SELF']); ?>">
 	<table>
 	<tr>
 		<td class="right">Torrent file:</td>

@@ -92,7 +92,7 @@ exit;
 
 		?>
 		<br>
-		<form method="post" action="<?php echo $_SERVER["PHP_SELF"];?>">
+		<form method="post" action="<?php echo htmlentities($_SERVER['PHP_SELF']);?>">
 		<input type="hidden" name="started" value="1">
 		<h2>The MySQL database needs to be prepared for the tracker. This script will help
 		you do that.</h2>
@@ -115,7 +115,7 @@ exit;
 	if (isset($_POST["preexisting"]))
 	{
 		?>
-		<form method="post" action="<?php echo $_SERVER["PHP_SELF"];?>">
+		<form method="post" action="<?php echo htmlentities($_SERVER['PHP_SELF']);?>">
 		<input type="hidden" name="maketables" value="1">
 		<input type="hidden" name="started" value="1">
 		<h1>RivetTracker Installation</h1>
@@ -142,7 +142,7 @@ exit;
 	if (isset($_POST["makeaccount"]))
 	{
 		?>
-		<form method="post" action="<?php echo $_SERVER["PHP_SELF"];?>">
+		<form method="post" action="<?php echo htmlentities($_SERVER['PHP_SELF']);?>">
 		<input type="hidden" name="domakeaccount" value="1">
 		<input type="hidden" name="started" value="1">
 		<h1>Tracker Installation</h1>
@@ -231,7 +231,7 @@ exit;
 	{
 		//have user set values for config.php
 		?>
-		<form method="post" action="<?php echo $_SERVER["PHP_SELF"];?>">
+		<form method="post" action="<?php echo htmlentities($_SERVER['PHP_SELF']);?>">
 		<input type="hidden" name="config" value="1">
 		<input type="hidden" name="started" value="1">
 		<?php
@@ -597,7 +597,7 @@ exit;
 			<h2>"config.php" was unable to be created on the server, 
 			you will have to download the file and upload it manually.</h2>
 			<br>
-			<form method="post" action="<?php echo $_SERVER["PHP_SELF"];?>">
+			<form method="post" action="<?php echo htmlentities($_SERVER['PHP_SELF']);?>">
 			<input type="hidden" name="download" value="1">
 			<input type="hidden" name="hiddentracker" value="<?php if (isset($_POST['hiddentracker']) AND $_POST['hiddentracker'] == 'on') echo 'true'; else echo 'false';?>">
 			<input type="hidden" name="scrape" value="<?php if (isset($_POST['scrape']) AND $_POST['scrape'] == 'on') echo 'true'; else echo 'false';?>">

@@ -190,7 +190,7 @@ else
 	if (function_exists("zip_open"))
 	{
 		?>
-		<form enctype="multipart/form-data" action="<?php echo $_SERVER["PHP_SELF"];?>" method="post">
+		<form enctype="multipart/form-data" action="<?php echo htmlentities($_SERVER['PHP_SELF']);?>" method="post">
 		<b>Zip File:</b><input type="file" name="zipfile" size="50"/>
 		<input type="submit" value="Upload ZIP File"/>
 		</form>

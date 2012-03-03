@@ -23,7 +23,7 @@ if (!$_SESSION['admin_logged_in'])
 <body>
 <h1>Tracker User Statistics</h1>
 
-<form action="<?php echo $_SERVER["PHP_SELF"];?>" method="POST">
+<form action="<?php echo htmlentities($_SERVER['PHP_SELF']);?>" method="POST">
 Filename Search:<input type="text" name="filename_search" size="40"<?php if (isset($_POST["filename_search"]))echo " value=\"" . $_POST["filename_search"] . "\"";?>>
 <input type="submit" value="Search">
 </form>
@@ -48,7 +48,7 @@ if (isset($_POST["filename_search"]) && $_POST["filename_search"] != "")
 }
 else //display everything
 {
-	$scriptname = $_SERVER["PHP_SELF"] . "?";
+	$scriptname = htmlentities($_SERVER['PHP_SELF']) . "?";
 	
 	if (!isset($_GET["activeonly"])) 
 		echo "<a href=\"$scriptname" . "activeonly=yes\">Show only torrents with seeders/leechers</a>\n";

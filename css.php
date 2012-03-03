@@ -136,7 +136,7 @@ if (isset($_POST["create_css"]) || isset($_POST["edit_css"]))
 	//display text box with css in it
 	?>
 	<h2>Editing File: <?php echo $filename;?></h2>
-	<form action="<?php echo $_SERVER["PHP_SELF"];?>" method="post">
+	<form action="<?php echo htmlentities($_SERVER['PHP_SELF']);?>" method="post">
 	<input type="hidden" name="hidden_filename" value="<?php echo $filename;?>"/>
 	<input type="hidden" name="current_css_file" value="<?php echo $_POST['current_css_file'];?>"/>
 	<textarea name="file_contents" cols="120" rows="20"><?php
@@ -203,7 +203,7 @@ if (!isset($_POST["create_css"]) && !isset($_POST["edit_css"]) && !isset($_POST[
 	echo "<b>Currently Used CSS File: " . $current_css_file . "</b><br><br>";
 	?>
 	
-	<form action="<?php echo $_SERVER['PHP_SELF'];?>" method="post">
+	<form action="<?php echo htmlentities($_SERVER['PHP_SELF']);?>" method="post">
 	<b>Set CSS File:</b><select name="set_css">
 	<?php
 	for ($i = 0; $i < $number_files; $i++)
@@ -217,7 +217,7 @@ if (!isset($_POST["create_css"]) && !isset($_POST["edit_css"]) && !isset($_POST[
 	</form>
 	<br><br>
 	
-	<form action="<?php echo $_SERVER['PHP_SELF'];?>" method="post"> 
+	<form action="<?php echo htmlentities($_SERVER['PHP_SELF']);?>" method="post"> 
 	<b>Delete CSS File:</b><select name="delete_css">
 	<?php
 	for ($i = 0; $i < $number_files; $i++)
@@ -231,7 +231,7 @@ if (!isset($_POST["create_css"]) && !isset($_POST["edit_css"]) && !isset($_POST[
 	</form>
 	<br><br>
 	
-	<form action="<?php echo $_SERVER['PHP_SELF'];?>" method="post">
+	<form action="<?php echo htmlentities($_SERVER['PHP_SELF']);?>" method="post">
 	<input type="hidden" name="current_css_file" value="<?php echo $current_css_file;?>"/>
 	<b>Edit Existing CSS File:</b><select name="edit_css">
 	<?php
@@ -245,7 +245,7 @@ if (!isset($_POST["create_css"]) && !isset($_POST["edit_css"]) && !isset($_POST[
 	</form>
 	<br><br>
 	
-	<form action="<?php echo $_SERVER['PHP_SELF'];?>" method="post"> 
+	<form action="<?php echo htmlentities($_SERVER['PHP_SELF']);?>" method="post"> 
 	<b>Create New CSS File (e.g. mycssfile.css):</b>
 	<input type="text" size="40" name="create_css"/>
 	<input type="submit" value="Create New CSS File"/>

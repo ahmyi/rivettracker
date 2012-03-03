@@ -24,7 +24,7 @@ if (!isset($_POST["saveconfig"]))
 {
 	?>
 	<h1>Edit Config File</h1>
-	<form action="<?php echo $_SERVER["PHP_SELF"];?>" method="POST">
+	<form action="<?php echo htmlentities($_SERVER['PHP_SELF']);?>" method="POST">
 	<input type="hidden" name="saveconfig" value="1">
 	<h2>This page allows you to configure the "config.php" settings.  This file stores all the necessary
 	settings for your tracker.  Please do NOT edit the "config.php" file directly, 
