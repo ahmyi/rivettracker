@@ -32,19 +32,24 @@ if (substr($_SERVER["PATH_INFO"],-7) == '/scrape')
 	if ($scrape == true)
 	{
 		$usehash = false;
-		if (isset($_GET["info_hash"]))
+		if (!isset($_GET["info_hash"]))
 		{
-			if (get_magic_quotes_gpc())
-				$info_hash = stripslashes($_GET["info_hash"]);
-			else
-				$info_hash = $_GET["info_hash"];
-			if (strlen($info_hash) == 20)
-				$info_hash = bin2hex($info_hash);
-			else if (strlen($info_hash) == 40)
-				verifyHash($info_hash) or showError("Invalid info hash value.");
-			else
-				showError("Invalid info hash value.");
-			$usehash = true;
+			header("HTTP/1.0 400 Bad Request");
+			die("This file is for BitTorrent clients.\n");
+			if (isset($_GET["info_hash"]))
+			{
+				if (get_magic_quotes_gpc())
+					$info_hash = stripslashes($_GET["info_hash"]);
+				else
+					$info_hash = $_GET["info_hash"];
+				if (strlen($info_hash) == 20)
+					$info_hash = bin2hex($info_hash);
+				else if (strlen($info_hash) == 40)
+					verifyHash($info_hash) or showError("Invalid info hash value.");
+				else
+					showError("Invalid info hash value.");
+				$usehash = true;
+			}
 		}
 		if ($usehash)
 			$query = mysql_query("SELECT info_hash, filename FROM ".$prefix."namemap WHERE info_hash=\"$info_hash\"");
