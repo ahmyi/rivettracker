@@ -618,4 +618,18 @@ function addquotes($input)
 	return $input;
 }
 
+//generic filter function for cleaning data
+function filterData($data)
+{
+	$data = trim(htmlentities(strip_tags($data)));
+
+	if (get_magic_quotes_gpc()) {
+		$data = stripslashes($data);
+	}
+
+	$data = mysql_real_escape_string($data);
+
+	return $data;
+}
+
 ?>
