@@ -95,7 +95,7 @@ function showError($message, $log=false)
 
 function errorMessage()
 {
-	echo "<center><img src=\"images/important.png\" border=\"0\" class=\"icon\" alt=\"Critical Message\" title=\"Critical Message\" /></center>\n<p class=\"error\">";
+	echo "<center><img src='images/important.png' border='0' class='icon' alt='Critical Message' title='Critical Message' /></center>\n<p class='error'>";
 }
 
 
@@ -108,7 +108,7 @@ function makeTorrent($hash, $tolerate = false)
 	if (strlen($hash) != 40)
 		showError("makeTorrent: Received an invalid hash");
 	$result = true;
-	$query = "CREATE TABLE ".$prefix."x$hash (peer_id char(40) NOT NULL default '', bytes bigint NOT NULL default 0, ip char(50) NOT NULL default 'error.x', port smallint UNSIGNED NOT NULL default \"0\", status enum('leecher','seeder') NOT NULL, lastupdate int unsigned NOT NULL default 0, sequence int unsigned AUTO_INCREMENT NOT NULL, natuser enum('N', 'Y') not null default 'N', primary key(sequence), unique(peer_id)) DEFAULT CHARACTER SET utf8 DEFAULT COLLATE utf8_general_ci ENGINE = innodb";
+	$query = "CREATE TABLE ".$prefix."x$hash (peer_id char(40) NOT NULL default '', bytes bigint NOT NULL default 0, ip char(50) NOT NULL default 'error.x', port smallint UNSIGNED NOT NULL default '0', status enum('leecher','seeder') NOT NULL, lastupdate int unsigned NOT NULL default 0, sequence int unsigned AUTO_INCREMENT NOT NULL, natuser enum('N', 'Y') not null default 'N', primary key(sequence), unique(peer_id)) DEFAULT CHARACTER SET utf8 DEFAULT COLLATE utf8_general_ci ENGINE = innodb";
 	if (!@mysql_query($query))
 		$result = false;
 	if (!$result && !$tolerate)
@@ -117,7 +117,7 @@ function makeTorrent($hash, $tolerate = false)
 	$query = "CREATE TABLE ".$prefix."y$hash (sequence int unsigned NOT NULL default 0, with_peerid char(101) NOT NULL default '', without_peerid char(40) NOT NULL default '', compact char(6) NOT NULL DEFAULT '', unique k (sequence)) DELAY_KEY_WRITE=1 CHECKSUM=0 DEFAULT CHARACTER SET utf8 DEFAULT COLLATE utf8_general_ci ENGINE = innodb";
 	mysql_query($query);
 		
-	$query = "INSERT INTO ".$prefix."summary set info_hash=\"".$hash."\", lastSpeedCycle=UNIX_TIMESTAMP()";
+	$query = "INSERT INTO ".$prefix."summary set info_hash='".$hash."', lastSpeedCycle=UNIX_TIMESTAMP()";
 	if (!@mysql_query($query))
 		$result = false;
 	return $result;
@@ -128,7 +128,7 @@ function makeTorrent($hash, $tolerate = false)
 function verifyTorrent($hash)
 {
 	require("config.php"); //need prefix value...
-	$query = "SELECT COUNT(*) FROM ".$prefix."summary where info_hash=\"$hash\"";
+	$query = "SELECT COUNT(*) FROM ".$prefix."summary where info_hash='$hash'";
 	$results = mysql_query($query);
 	
 	$res = mysql_result($results,0,0);
@@ -163,7 +163,7 @@ function getPeerInfo($user, $hash)
 		if (!$data || $data["peer_id"] != $user)
 		{
 			// Damn, but don't crash just yet.
-			$query = "SELECT peer_id,bytes,ip,port,status,lastupdate,sequence FROM ".$prefix."x$hash WHERE peer_id=\"$user\"";
+			$query = "SELECT peer_id,bytes,ip,port,status,lastupdate,sequence FROM ".$prefix."x$hash WHERE peer_id='$user'";
 			$results = mysql_query($query) or showError("Tracker error: invalid torrent"); 
 			$data = mysql_fetch_assoc($results);
 			$GLOBALS["trackerid"] = $data["sequence"];
@@ -171,7 +171,7 @@ function getPeerInfo($user, $hash)
 	}
 	else
 	{
-		$query = "SELECT peer_id,bytes,ip,port,status,lastupdate,sequence FROM ".$prefix."x$hash WHERE peer_id=\"$user\"";
+		$query = "SELECT peer_id,bytes,ip,port,status,lastupdate,sequence FROM ".$prefix."x$hash WHERE peer_id='$user'";
 		$results = mysql_query($query) or showError("Tracker error: invalid torrent");
 		$data = mysql_fetch_assoc($results);
 		$GLOBALS["trackerid"] = $data["sequence"];
@@ -241,7 +241,7 @@ function killPeer($userid, $hash, $left, $assumepeer = false)
 		$peer = $assumepeer;
 	}
 
-	quickQuery("DELETE FROM ".$prefix."x$hash WHERE peer_id=\"$userid\"");
+	quickQuery("DELETE FROM ".$prefix."x$hash WHERE peer_id='$userid'");
 	if (mysql_affected_rows() == 1)
 	{
 		//peercaching ALWAYS on
@@ -265,11 +265,11 @@ function collectBytes($peer, $hash, $left)
 
 	if (!$GLOBALS["countbytes"])
 	{
-		quickQuery("UPDATE ".$prefix."x$hash SET lastupdate=UNIX_TIMESTAMP() where " . (isset($GLOBALS["trackerid"]) ? "sequence=\"${GLOBALS["trackerid"]}\"" : "peer_id=\"$peerid\""));
+		quickQuery("UPDATE ".$prefix."x$hash SET lastupdate=UNIX_TIMESTAMP() where " . (isset($GLOBALS["trackerid"]) ? "sequence='${GLOBALS["trackerid"]}'" : "peer_id='$peerid'"));
 		return;
 	}
 	$diff = sqlSubtract($peer["bytes"], $left);
-	quickQuery("UPDATE ".$prefix."x$hash set " . (($diff != 0) ? "bytes=\"$left\"," : ""). " lastupdate=UNIX_TIMESTAMP() where " . (isset($GLOBALS["trackerid"]) ? "sequence=\"${GLOBALS["trackerid"]}\"" : "peer_id=\"$peerid\""));
+	quickQuery("UPDATE ".$prefix."x$hash set " . (($diff != 0) ? "bytes='$left'," : ""). " lastupdate=UNIX_TIMESTAMP() where " . (isset($GLOBALS["trackerid"]) ? "sequence='${GLOBALS["trackerid"]}'" : "peer_id='$peerid'"));
 
 	// Anti-negative clause
 	if (((float)$diff) > 0)
@@ -528,7 +528,7 @@ function runSpeed($info_hash, $delta)
 {
 	require("config.php");
 	//stick in our latest data before we calc it out
-	quickQuery("INSERT IGNORE INTO ".$prefix."timestamps (info_hash, bytes, delta, sequence) SELECT '$info_hash' AS info_hash, dlbytes, UNIX_TIMESTAMP() - lastSpeedCycle, NULL FROM ".$prefix."summary WHERE info_hash=\"$info_hash\"");
+	quickQuery("INSERT IGNORE INTO ".$prefix."timestamps (info_hash, bytes, delta, sequence) SELECT '$info_hash' AS info_hash, dlbytes, UNIX_TIMESTAMP() - lastSpeedCycle, NULL FROM ".$prefix."summary WHERE info_hash='$info_hash'");
 
 	// mysql blows sometimes so we have to read the data into php before updating it
 	$results = mysql_query('SELECT (MAX(bytes)-MIN(bytes))/SUM(delta), COUNT(*), MIN(sequence) FROM '.$prefix.'timestamps WHERE info_hash="'.$info_hash.'"' );
@@ -550,7 +550,7 @@ function runSpeed($info_hash, $delta)
 
 	// if we have more than 20 drop the rest
 	//if ($data[1] == 21)
-		//quickQuery("DELETE FROM timestamps WHERE info_hash=\"$info_hash\" AND sequence=${data[2]}");
+		//quickQuery("DELETE FROM timestamps WHERE info_hash='$info_hash' AND sequence=${data[2]}");
 	if ($data[1] > 21)
 		// This query requires MySQL 4.0.x, but should rarely be used.
 		quickQuery ('DELETE FROM '.$prefix.'timestamps WHERE info_hash="'.$info_hash.'" ORDER BY sequence LIMIT '.($data['1'] - 20));
