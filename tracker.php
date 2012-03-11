@@ -36,10 +36,7 @@ if (isset ($_SERVER["PATH_INFO"]) )
 			$usehash = false;
 			if (isset($_GET["info_hash"]))
 			{
-				if (get_magic_quotes_gpc())
-					$info_hash = stripslashes($_GET["info_hash"]);
-				else
-					$info_hash = $_GET["info_hash"];
+				$info_hash = filterData($_GET["info_hash"]);
 				if (strlen($info_hash) == 20)
 					$info_hash = bin2hex($info_hash);
 				else if (strlen($info_hash) == 40)
@@ -60,9 +57,9 @@ if (isset ($_SERVER["PATH_INFO"]) )
 				$query = mysql_query("SELECT info_hash, seeds, leechers, finished FROM ".$prefix."summary WHERE info_hash='$info_hash'") or showError("Database error. Cannot complete request.");
 			else
 				$query = mysql_query("SELECT info_hash, seeds, leechers, finished FROM ".$prefix."summary ORDER BY info_hash") or showError("Database error. Cannot complete request.");
-	
+
 			echo "d5:filesd";
-	
+
 			while ($row = mysql_fetch_row($query))
 			{
 				$hash = hex2bin($row[0]);
@@ -74,7 +71,7 @@ if (isset ($_SERVER["PATH_INFO"]) )
 					echo "4:name".strlen($namemap[$row[0]]).":".$namemap[$row[0]];
 				echo "e";
 			}
-		
+
 			echo "ee";
 			exit();
 		}
@@ -99,39 +96,44 @@ if (!isset($_GET["info_hash"]) || !isset($_GET["peer_id"]))
 
 
 $info_hash = bin2hex(clean($_GET["info_hash"]));
-$peer_id = bin2hex(clean($_GET["peer_id"]));
+$peer_id = bin2hex(filterData($_GET["peer_id"]));
 
 
-if (!isset($_GET["port"]) || !isset($_GET["downloaded"]) || !isset($_GET["uploaded"]) || !isset($_GET["left"]))
+if (!isset($_GET["port"]) || !isset($_GET["downloaded"]) || !isset($_GET["uploaded"]) || !isset($_GET["left"])) {
 	showError("Invalid information received from BitTorrent client");
+}
 
-$port = $_GET["port"];
-$ip = mysql_escape_string(str_replace("::ffff:", "", $_SERVER["REMOTE_ADDR"]));
-$downloaded = $_GET["downloaded"];
-$uploaded = $_GET["uploaded"];
-$left = $_GET["left"];
+$port = filterData($_GET["port"]);
+$ip = filterData((str_replace("::ffff:", "", $_SERVER["REMOTE_ADDR"])));
+$downloaded = filterData($_GET["downloaded"]);
+$uploaded = filterData($_GET["uploaded"]);
+$left = filterData($_GET["left"]);
 
 
 if (isset($_GET["event"]))
-	$event = $_GET["event"];
+	$event = filterData($_GET["event"]);
 else
 	$event = "";
 
 if (!isset($GLOBALS["ip_override"]))
 	$GLOBALS["ip_override"] = true;
 
-if (isset($_GET["numwant"]))
-	if ($_GET["numwant"] < $GLOBALS["maxpeers"] && $_GET["numwant"] >= 0)
-		$GLOBALS["maxpeers"]=$_GET["numwant"];
+if (isset($_GET["numwant"])) {
+	if ($_GET["numwant"] < $GLOBALS["maxpeers"] && $_GET["numwant"] >= 0) {
+		$GLOBALS["maxpeers"] = filterData($_GET["numwant"]);
+	}
+}
 
 if (isset($_GET["trackerid"]))
 {	
-	if (is_numeric($_GET["trackerid"]))
-		$GLOBALS["trackerid"] = mysql_escape_string($_GET["trackerid"]);
+	if (is_numeric($_GET["trackerid"])) {
+		$GLOBALS["trackerid"] = filterData($_GET["trackerid"]);
+	}
 }
-if (!is_numeric($port) || !is_numeric($downloaded) || !is_numeric($uploaded) || !is_numeric($left))
-	showError("Invalid numerical field(s) from client");
 
+if (!is_numeric($port) || !is_numeric($downloaded) || !is_numeric($uploaded) || !is_numeric($left)) {
+	showError("Invalid numerical field(s) from client");
+}
 
 
 /////////////////////////////////////////////////////
@@ -183,7 +185,7 @@ function start($info_hash, $ip, $port, $peer_id, $left)
 		// compact check: valid IP address:
 		if (ip2long($_GET["ip"]) == -1)
 			showError("Invalid IP address. Must be standard dotted decimal (hostnames not allowed)");
-		$ip = mysql_escape_string($_GET["ip"]);
+		$ip = filterData($_GET["ip"]);
 	}
 
 	if ($left == 0)
@@ -220,11 +222,10 @@ function start($info_hash, $ip, $port, $peer_id, $left)
 	}
 	$GLOBALS["trackerid"] = mysql_insert_id();
 
-	$compact = mysql_real_escape_string(pack('Nn', ip2long($ip), $port));
-	$peerid = mysql_real_escape_string('2:ip' . strlen($ip) . ':' . $ip . '7:peer id20:' . hex2bin($peer_id) . "4:porti{$port}e");
-	$no_peerid = mysql_real_escape_string('2:ip' . strlen($ip) . ':' . $ip . "4:porti{$port}e");
-	mysql_query("INSERT INTO ".$prefix."y$info_hash SET sequence='{$GLOBALS["trackerid"]}', compact='$compact', with_peerid='$peerid', without_peerid='$no_peerid'");
-	// Let's just assume success... :/
+	$compact = filterData(pack('Nn', ip2long($ip), $port));
+	$peerid = filterData('2:ip' . strlen($ip) . ':' . $ip . '7:peer id20:' . hex2bin($peer_id) . "4:porti{$port}e");
+	$no_peerid = filterData('2:ip' . strlen($ip) . ':' . $ip . "4:porti{$port}e");
+	@mysql_query("INSERT INTO ".$prefix."y$info_hash SET sequence='{$GLOBALS["trackerid"]}', compact='$compact', with_peerid='$peerid', without_peerid='$no_peerid'");
 
 	if ($left == 0)
 	{
@@ -303,7 +304,7 @@ else if ($event == "completed") // now the same as an empty string
 		quickQuery("UPDATE ".$prefix."x$info_hash SET bytes=0, status='seeder' WHERE sequence='${GLOBALS["trackerid"]}'");
 
 		// Race check
-		if (mysql_affected_rows() == 1) 
+		if (mysql_affected_rows() == 1)
 		{
 			summaryAdd("leechers", -1);
 			summaryAdd("seeds", 1);
