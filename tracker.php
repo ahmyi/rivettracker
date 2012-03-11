@@ -23,7 +23,7 @@ else
 if (isset ($_SERVER["PATH_INFO"]) )
 {
 	// Scrape interface
-	if ((!isset($_GET["info_hash"])) || (!isset($_GET["info_hash"])) == ($_GET["info_hash"]))
+	if (!isset($_GET["info_hash"]))
 	{
 		header("HTTP/1.0 400 Bad Request");
 		die("This file is for BitTorrent clients.\n");
