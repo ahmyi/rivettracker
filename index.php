@@ -285,6 +285,8 @@ while ($data = mysql_fetch_row($results)) {
 		//https://en.wikipedia.org/wiki/Magnet_URI_scheme
 		//Base-32 encoded SHA1 hash sum
 		echo "magnet:?xt=urn:btih:".$data[0];
+		//Size in bytes
+		echo "&xl=".$data[7];
 		//name
 		echo "&dn=".rawurlencode($data[5]);
 		//tracker url
