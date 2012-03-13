@@ -24,7 +24,7 @@ if (!$_SESSION['admin_logged_in'])
 <h1>Tracker User Statistics</h1>
 
 <form action="<?php echo htmlentities($_SERVER['PHP_SELF']);?>" method="POST">
-Filename Search:<input type="text" name="filename_search" size="40"<?php if (isset($_POST["filename_search"]))echo " value=\"" . $_POST["filename_search"] . "\"";?>>
+Filename Search:<input type="text" name="filename_search" size="40"<?php if (isset($_POST["filename_search"]))echo " value=\"" . filterData($_POST["filename_search"]) . "\"";?>>
 <input type="submit" value="Search">
 </form>
 <br>

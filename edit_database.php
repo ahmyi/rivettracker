@@ -36,7 +36,7 @@ mysql_select_db($database) or die(errorMessage() . "Error selecting database.</p
 
 //get filename from URL string
 if (isset($_GET['filename'])) {
-	$filename = $_GET['filename'];
+	$filename = htmlentities($_GET['filename']);
 }
 
 //if not edit database or filename set, display all torrents as links
