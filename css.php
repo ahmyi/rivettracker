@@ -78,12 +78,17 @@ elseif (isset($_POST["create_css"]))
 	{
 		if (!file_exists("./css/" . filterData($_POST["create_css"])))
 		{
-			if (copy("./css/style.css", "./css/" . filterData($_POST["create_css"])))
-				echo "<p class=\"success\">" . filterData($_POST["create_css"]) . ", was created successfuly</p>";
+			if (filterData($_POST["create_css"]) == ".css")
+			{
+				echo errorMessage() . "Error: Should not create .css file with only an extension!</p>";
+				exit();
+			}
+			elseif (copy("./css/style.css", "./css/" . filterData($_POST["create_css"])))
+				echo "<p class=\"success\">" . filterData($_POST["create_css"]) . " was created successfully</p>";
 			else
 			{
 				echo errorMessage() . "Error: Unable to create " . filterData($_POST["create_css"]) . ", are you sure the permissions are correct?</p>";
-				exit();			
+				exit();
 			}
 		}
 		else
@@ -146,7 +151,7 @@ if (isset($_POST["create_css"]) || isset($_POST["edit_css"]))
 	<h2>Editing File: <?php echo $filename;?></h2>
 	<form action="<?php echo htmlentities($_SERVER['PHP_SELF']);?>" method="post">
 	<input type="hidden" name="hidden_filename" value="<?php echo $filename;?>"/>
-	<input type="hidden" name="current_css_file" value="<?php echo $_POST['current_css_file'];?>"/>
+	<input type="hidden" name="current_css_file" value="<?php echo filterData($_POST['current_css_file']);?>"/>
 	<textarea name="file_contents" cols="120" rows="20"><?php
 	//open css file
 	readfile("./css/" . $filename);
