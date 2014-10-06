@@ -1,0 +1,9 @@
+rivettracker
+============
+
+Basic Tracker or if ones avlible for Drupal.... thats stable then I will drop....
+
+ USED for Mirroring ISO's for Sabayon.org , Spike-Pentesting, Pentoo, Gentoo,ETC. 
+ As the VPS has space for.... 
+ 
+curl FTP deploy for updates.... 
