@@ -71,12 +71,13 @@ function quickQuery($query)
 		return $results;
 	return true;
 }
-
-function hex2bin ($input, $assume_safe=true)
-{
-	if ($assume_safe !== true && ! ((strlen($input) % 2) === 0 || preg_match ('/^[0-9a-f]+$/i', $input)))
-		return "";
-	return pack('H*', $input );
+if (!function_exists("hex2bin")){
+	function hex2bin ($input, $assume_safe=true)
+	{
+		if ($assume_safe !== true && ! ((strlen($input) % 2) === 0 || preg_match ('/^[0-9a-f]+$/i', $input)))
+			return "";
+		return pack('H*', $input );
+	}
 }
 
 // Reports an error to the client in $message.
