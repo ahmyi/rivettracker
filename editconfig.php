@@ -1,23 +1,17 @@
 <?php
 require ("config.php");
 require_once ("funcsv2.php");
-//Check session
 session_start();
-
 if (!$_SESSION['admin_logged_in'])
-{
-	//check fails
-	header("Location: authenticate.php?status=session");
-	exit();
-}
+	exit(header("Location: authenticate.php?status=session"));
 ?>
-
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
-<html><head><title>Edit Config File</title>
-	<meta http-equiv="Content-type" content="text/html; charset=iso-8859-1" />
-	<link rel="stylesheet" href="./css/style.css" type="text/css" />
-</head><body>
-
+<html>
+  <head>
+    <title>Edit Config File</title>
+    <meta http-equiv="Content-type" content="text/html; charset=iso-8859-1" />
+    <link rel="stylesheet" href="./css/style.css" type="text/css" />
+  </head>
+<body>
 <?php
 //open up config file and display for editing
 if (!isset($_POST["saveconfig"]))

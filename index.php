@@ -51,16 +51,10 @@ if (!isset($GLOBALS["countbytes"]))
 </head>
 <body>
 <?php
-//display total stats as header on page
-if ($GLOBALS["persist"])
-	$db = mysql_pconnect($dbhost, $dbuser, $dbpass) or die(errorMessage() . "Tracker error: can't connect to database - " . mysql_error() . "</p>");
-else
-	$db = mysql_connect($dbhost, $dbuser, $dbpass) or die(errorMessage() . "Tracker error: can't connect to database - " . mysql_error() . "</p>");
-mysql_select_db($database) or die(errorMessage() . "Tracker error: can't open database $database - " . mysql_error() . "</p>");
 
 $query = "SELECT SUM(".$prefix."namemap.size), SUM(".$prefix."summary.seeds), SUM(".$prefix."summary.leechers), SUM(".$prefix."summary.finished), SUM(".$prefix."summary.dlbytes), SUM(".$prefix."summary.speed) FROM ".$prefix."summary LEFT JOIN ".$prefix."namemap ON ".$prefix."summary.info_hash = ".$prefix."namemap.info_hash";
-$results = mysql_query($query) or die(errorMessage() . "Can't do SQL query - " . mysql_error() . "</p>");
-$data = mysql_fetch_row($results);
+$results = $sql->query($query) or die(errorMessage() . "Can't do SQL query - " . mysql_error() . "</p>");
+$data = $results->fetch_row();
 ?>
 
 <center>
@@ -132,11 +126,7 @@ if (file_exists("rss/rss.xml"))
 <tr>
 	<?php
 	//Cleanup page number to prevent XSS
-	if (isset($_GET["page_number"])) {
-		$_GET["page_number"] = htmlspecialchars($_GET["page_number"]);
-	} else {
-		$_GET["page_number"] = "";
-	}
+	@$_GET["page_number"] = htmlspecialchars(@$_GET["page_number"]);
 	$scriptname = htmlspecialchars($scriptname);
 	
 	if (!isset($_GET["activeonly"]))
@@ -180,12 +170,6 @@ if (file_exists("rss/rss.xml"))
 </table>
 
 <?php
-if ($GLOBALS["persist"])
-	$db = mysql_pconnect($dbhost, $dbuser, $dbpass) or die(errorMessage() . "Tracker error: can't connect to database - " . mysql_error() . "</p>");
-else
-	$db = mysql_connect($dbhost, $dbuser, $dbpass) or die(errorMessage() . "Tracker error: can't connect to database - " . mysql_error() . "</p>");
-mysql_select_db($database) or die(errorMessage() . "Tracker error: can't open database $database - " . mysql_error() . "</p>");
-
 if (isset($_GET["seededonly"]))
 	$where = " WHERE seeds > 0";
 else if (isset($_GET["activeonly"]))
@@ -194,8 +178,8 @@ else
 	$where = " ";
 
 $query = "SELECT COUNT(*) FROM ".$prefix."summary $where";
-$results = mysql_query($query);
-$res = mysql_result($results,0,0);
+$results = $sql->query($query);
+$res = $results->data_seek(0);
 
 if (isset($_GET["activeonly"]))
 	$scriptname = $scriptname . "activeonly=yes&";
@@ -249,10 +233,10 @@ else
 	$query = "SELECT ".$prefix."summary.info_hash, ".$prefix."summary.seeds, ".$prefix."summary.leechers, ".$prefix."summary.finished, ".$prefix."summary.dlbytes, ".$prefix."namemap.filename, ".$prefix."namemap.url, ".$prefix."namemap.size, ".$prefix."summary.speed FROM ".$prefix."summary LEFT JOIN ".$prefix."namemap ON ".$prefix."summary.info_hash = ".$prefix."namemap.info_hash $where ORDER BY ".$prefix."namemap.filename LIMIT $page_limit,10";
 }
 
-$results = mysql_query($query) or die(errorMessage() . "Can't do SQL query - " . mysql_error() . "</p>");
+$results = $sql->query($query) or die(errorMessage() . "Can't do SQL query - " . mysql_error() . "</p>");
 $i = 0;
 
-while ($data = mysql_fetch_row($results)) {
+while ($data = $results->fetch_row()) {
 	// NULLs are such a pain at times. isset($nullvar) == false
 	if (is_null($data[5]))
 		$data[5] = $data[0];
@@ -339,7 +323,7 @@ if ($GLOBALS["countbytes"]) //stop count bytes variable
 ?>
 	</tr></table></td></tr>
 	<tr class="details">
-		<td align="left"><a href="http://www.rivetcode.com">RivetTracker</a> Version: 1.03</td>
+		<td align="left"><a href="http://www.rivetcode.com">RivetTracker</a> Version: 1.02</td>
 		<?php
 		if (file_exists("legalterms.txt"))
 			echo "<td align=\"right\"><a href=\"legalterms.txt\">Use Policy and Terms of Service</a></td>";

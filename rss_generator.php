@@ -9,14 +9,11 @@ require_once ("funcsv2.php");
 //3) the config.php file is edited
 //This is to ensure that the correct rss.xml file is available and generated
 
-//connect to database
-$db = mysql_connect($dbhost, $dbuser, $dbpass) or die(errorMessage() . "Cannot connect to database. Check your username and password in the config file.</p>");
-mysql_select_db($database) or die(errorMessage() . "Error selecting database.</p>");
 $query = "SELECT filename,url,size,pubDate FROM ".$prefix."namemap ORDER BY pubDate DESC";
-$results = mysql_query($query) or die(errorMessage() . "Can't do SQL query - " . mysql_error() . "</p>");
+$results = $sql->query($query);
 
 //if there are no entries in database or RSS feed is disabled in config.php file, delete rss.xml file
-if (mysql_num_rows($results) == 0 || $enablerss == false)
+if ($results->num_rows == 0 || $enablerss == false)
 {
 	if (file_exists("rss/rss.xml")) //make sure file exists before trying to delete
 		unlink("rss/rss.xml") or die ("Can't delete rss.xml file using unlink().  Are you running the server under Windows?");
@@ -33,8 +30,7 @@ else //otherwise, generate new rss.xml file
 	"<description>" . clean($rss_description) . "</description>\n" .
 	"<lastBuildDate>" . date('D, j M Y h:i:s') . " " . $timezone . "</lastBuildDate>\n";
 	
-	$middle_text = "";
-	while ($row = mysql_fetch_row($results))
+	while ($row = $results->fetch_row())
 	{
 		//figure out full torrent URL
 		$url = $website_url . $_SERVER['REQUEST_URI'];

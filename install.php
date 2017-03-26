@@ -69,26 +69,7 @@ exit;
 		<center>
 		<h1>RivetTracker Installer</h1>
 		<img src="images/install.png" border="0" class="icon" alt="RivetTracker Installation" title="RivetTracker Installation" />
-		</center>
-
-		<?php
-		//Check PHP version
-		echo "<p>PHP Version: " . PHP_VERSION . "</p>";
-		//http://php.net/manual/en/function.version-compare.php
-		if (version_compare(PHP_VERSION, '5.0.0', '<')) {
-			echo "<p>You're not running PHP 5.0, you may have problems.</p>";
-		}
-		//Check for MySQL support
-		if (class_exists('mysqli') OR function_exists('mysql_connect')) {
-			echo "<p>MySQL Enabled: Yes</p>";
-		} else {
-			echo "<p>MySQL Enabled: No (this is a requirement)</p>";
-			echo "</body></html>";
-			exit();
-		}
-
-		?>
-		<br>
+		</center>	
 		<form method="post" action="<?php echo $_SERVER["PHP_SELF"];?>">
 		<input type="hidden" name="started" value="1">
 		<h2>The MySQL database needs to be prepared for the tracker. This script will help
@@ -162,13 +143,7 @@ exit;
 		</form></body></html>
 		<?php exit;
 	}
-
-	if (isset($_POST["prefix"])) {
-		$prefix = $_POST["prefix"];
-	} else {
-		$prefix = "";
-	}
-
+	$prefix = $_POST["prefix"];
 	$makenamemap= 'CREATE TABLE ' . $prefix . 'namemap (info_hash char(40) NOT NULL default "", filename varchar(250) NOT NULL default "", url varchar(250) NOT NULL default "", size bigint(20) unsigned NOT NULL, pubDate varchar(25) NOT NULL default "", PRIMARY KEY(info_hash)) ENGINE = innodb'; 	
 	$makesummary = 'CREATE TABLE ' . $prefix . 'summary (info_hash char(40) NOT NULL default "", dlbytes bigint unsigned NOT NULL default 0, seeds int unsigned NOT NULL default 0, leechers int unsigned NOT NULL default 0, finished int unsigned NOT NULL default 0, lastcycle int unsigned NOT NULL default "0", lastSpeedCycle int unsigned NOT NULL DEFAULT "0", speed bigint unsigned NOT NULL default 0, piecelength int(11) NOT NULL default -1, numpieces int(11) NOT NULL default 0, PRIMARY KEY (info_hash)) ENGINE = innodb';
 	$maketimestamps = 'CREATE TABLE ' . $prefix . 'timestamps (info_hash char(40) not null, sequence int unsigned not null auto_increment, bytes bigint unsigned not null, delta smallint unsigned not null, primary key(sequence), key sorting (info_hash)) ENGINE = innodb';
@@ -180,15 +155,13 @@ exit;
 		$password = $_POST["password"] or die(errorMessage() . "No username password was given, this is a huge security risk, please try again.</p>");
 		$database = $_POST["database"] or die(errorMessage() . "No database specified, please try again.</p>");
 		$hostname = $_POST["host"] or die(errorMessage() . "No database hostname specified, please try again.</p>");
-
-		$db = mysql_connect($hostname, $username, $password) or die(errorMessage() . "Can't connect to database: " . mysql_error() . "</p>"); 
-		mysql_select_db($database) or die(errorMessage() . "Can't select database: " . mysql_error() . "</p>");
-		mysql_query($makesummary) or die(errorMessage() . "Can't make the summary table: " . mysql_error() . "</p>");
-		mysql_query($makenamemap) or die(errorMessage() . "Can't make the namemap table: " . mysql_error() . "</p>");
-		mysql_query($maketimestamps) or die(errorMessage() . "Can't make the timestamps table: " . mysql_error() . "</p>");
-		mysql_query($makespeedlimit) or die(errorMessage() . "Can't make the speedlimit table: " . mysql_error() . "</p>");
-		mysql_query($makewebseedfiles) or die(errorMessage() . "Can't make the webseedfiles table: " . mysql_error() . "</p>");
-		mysql_query("INSERT INTO ".$prefix."speedlimit values (0,0,0)") or die(errorMessage() . "Can't insert zeros into speedlimit table: " . mysql_error() . "</p>");
+    $sql = new mysqli($hostname, $username, $password, $database);
+		$sql->query($makesummary);
+		$sql->query($makenamemap);
+		$sql->query($maketimestamps);
+		$sql->query($makespeedlimit);
+		$sql->query($makewebseedfiles);
+		$sql->query("INSERT INTO ".$prefix."speedlimit values (0,0,0)");
 		echo "<p class=\"success\">Database was created successfully!</p><br><br>";
 	}
 
@@ -198,28 +171,20 @@ exit;
 		$password = $_POST["password"] or die(errorMessage() . "No username password was given, this is a huge security risk, please try again.</p>");
 		$database = $_POST["database"] or die(errorMessage() . "No database specified, please try again.</p>");
 		$hostname = $_POST["host"] or die(errorMessage() . "No database hostname specified, please try again.</p>");
-
 		$dbadmin = $_POST["adminname"] or die(errorMessage() . "No admin username was given, please try again.</p>");
 		$dbpass = $_POST["adminpass"]; // No admin password, OK but huge security risk...
-		
 		// Escaping strings will be ignored for now.
-		$db = mysql_connect($hostname, $dbadmin, $dbpass) or die(errorMessage() . "Error connecting: " . mysql_error() . "</p>");
-		mysql_select_db("mysql") or die(errorMessage() . "Can't select db \"mysql\":" . mysql_error() . "</p>");
-
-		mysql_query("INSERT INTO user SET user=\"$username\", password=PASSWORD(\"$password\"), host=\"\"") or die(errorMessage() . "Can't make user: " . mysql_error() . "</p>");
-		mysql_query("INSERT INTO db SET Host=\"%\", db=\"$database\", user=\"$username\", select_priv='Y', Insert_priv='Y', Update_priv='Y', Delete_priv='Y', Create_priv='Y', Drop_priv='Y', Alter_priv='Y', index_priv='Y'") or die(errorMessage() . "Cannot insert into \"Db\": " . mysql_error() . "</p>");
-		mysql_query("CREATE DATABASE $database") or die(errorMessage() . "Can't make database: " . mysql_error() . "</p>");
-		
-		mysql_query("FLUSH PRIVILEGES") or die(errorMessage() . "Can't flush privileges: " . mysql_error() . "</p>");
-	
-		mysql_select_db($database) or die(errorMessage() . "Can't select database \"$database\":" . mysql_error() . "</p>");
-	
-		mysql_query($makesummary) or die(errorMessage() . "Can't make the summary table: " . mysql_error() . "</p>");
-		mysql_query($makenamemap) or die(errorMessage() . "Can't make the namemap table: " . mysql_error() . "</p>");
-		mysql_query($maketimestamps) or die(errorMessage() . "Can't make the timestamps table: " . mysql_error() . "</p>");
-		mysql_query($makespeedlimit) or die(errorMessage() . "Can't make the speedlimit table: " . mysql_error() . "</p>");
-		mysql_query($makewebseedfiles) or die(errorMessage() . "Can't make the webseedfiles table: " . mysql_error() . "</p>");
-		mysql_query("INSERT INTO ".$prefix."speedlimit values (0,0,0)") or die(errorMessage() . "Can't insert zeros into speedlimit table: " . mysql_error() . "</p>");
+    $sql = new mysqli($hostname, $username, $password, $database);
+		$sql->query("INSERT INTO user SET user=\"$username\", password=PASSWORD(\"$password\"), host=\"\"") or die(errorMessage() . "Can't make user: " . mysql_error() . "</p>");
+		$sql->query("INSERT INTO db SET Host=\"%\", db=\"$database\", user=\"$username\", select_priv='Y', Insert_priv='Y', Update_priv='Y', Delete_priv='Y', Create_priv='Y', Drop_priv='Y', Alter_priv='Y', index_priv='Y'") or die(errorMessage() . "Cannot insert into \"Db\": " . mysql_error() . "</p>");
+		$sql->query("CREATE DATABASE $database") or die(errorMessage() . "Can't make database: " . mysql_error() . "</p>");
+		$sql->query("FLUSH PRIVILEGES") or die(errorMessage() . "Can't flush privileges: " . mysql_error() . "</p>");
+		$sql->query($makesummary) or die(errorMessage() . "Can't make the summary table: " . mysql_error() . "</p>");
+		$sql->query($makenamemap) or die(errorMessage() . "Can't make the namemap table: " . mysql_error() . "</p>");
+		$sql->query($maketimestamps) or die(errorMessage() . "Can't make the timestamps table: " . mysql_error() . "</p>");
+		$sql->query($makespeedlimit) or die(errorMessage() . "Can't make the speedlimit table: " . mysql_error() . "</p>");
+		$sql->query($makewebseedfiles) or die(errorMessage() . "Can't make the webseedfiles table: " . mysql_error() . "</p>");
+		$sql->query("INSERT INTO ".$prefix."speedlimit values (0,0,0)") or die(errorMessage() . "Can't insert zeros into speedlimit table: " . mysql_error() . "</p>");
 		echo "<p class=\"success\">Database was created successfully!</p><br><br>";
 
 	}
@@ -545,6 +510,7 @@ exit;
 			"\$GLOBALS['max_uploads'] = " . htmlspecialchars($_POST['max_uploads']) . ";\n" .
 			"\$timezone = '" . htmlspecialchars($_POST["timezone"]) . "';\n" .
 			"\$prefix = '" . htmlspecialchars($_POST["prefix"]) . "';\n" .
+      "\$sql = new mysqli(\$dbhost, \$dbuser, \$dbpass, \$database);" . "';\n" .
 			"?>"
 			);
 
@@ -561,15 +527,15 @@ exit;
 			<br>
 			<form method="post" action="<?php echo $_SERVER["PHP_SELF"];?>">
 			<input type="hidden" name="download" value="1">
-			<input type="hidden" name="hiddentracker" value="<?php if (isset($_POST['hiddentracker']) AND $_POST['hiddentracker'] == 'on') echo 'true'; else echo 'false';?>">
-			<input type="hidden" name="scrape" value="<?php if (isset($_POST['scrape']) AND $_POST['scrape'] == 'on') echo 'true'; else echo 'false';?>">
+			<input type="hidden" name="hiddentracker" value="<?php if ($_POST['hiddentracker'] == 'on') echo 'true'; else echo 'false';?>">
+			<input type="hidden" name="scrape" value="<?php if ($_POST['scrape'] == 'on') echo 'true'; else echo 'false';?>">
 			<input type="hidden" name="report_interval" value="<?php echo $_POST['report_interval'];?>">
 			<input type="hidden" name="min_interval" value="<?php echo $_POST['min_interval'];?>">
 			<input type="hidden" name="maxpeers" value="<?php echo $_POST['maxpeers'];?>">
-			<input type="hidden" name="NAT" value="<?php if (isset($_POST['NAT']) AND $_POST['NAT'] == 'on') echo 'true'; else echo 'false';?>">
-			<input type="hidden" name="persist" value="<?php if (isset($_POST['persist']) AND $_POST['persist'] == 'on') echo 'true'; else echo 'false';?>">
-			<input type="hidden" name="ip_override" value="<?php if (isset($_POST['ip_override']) AND $_POST['ip_override'] == 'on') echo 'true'; else echo 'false';?>">
-			<input type="hidden" name="countbytes" value="<?php if (isset($_POST['countbytes']) AND $_POST['countbytes'] == 'on') echo 'true'; else echo 'false';?>">
+			<input type="hidden" name="NAT" value="<?php if ($_POST['NAT'] == 'on') echo 'true'; else echo 'false';?>">
+			<input type="hidden" name="persist" value="<?php if ($_POST['persist'] == 'on') echo 'true'; else echo 'false';?>">
+			<input type="hidden" name="ip_override" value="<?php if ($_POST['ip_override'] == 'on') echo 'true'; else echo 'false';?>">
+			<input type="hidden" name="countbytes" value="<?php if ($_POST['countbytes'] == 'on') echo 'true'; else echo 'false';?>">
 			<input type="hidden" name="upload_username" value="<?php echo $_POST['upload_username'];?>">
 			<input type="hidden" name="upload_password" value="<?php echo md5($_POST["upload_username"].$_POST["upload_password"]);?>">
 			<input type="hidden" name="admin_username" value="<?php echo $_POST['admin_username'];?>">
@@ -579,7 +545,7 @@ exit;
 			<input type="hidden" name="dbuser" value="<?php echo $_POST['dbuser'];?>">
 			<input type="hidden" name="dbpass" value="<?php echo $_POST['dbpass'];?>">
 			<input type="hidden" name="database" value="<?php echo $_POST['database'];?>">
-			<input type="hidden" name="enablerss" value="<?php if (isset($_POST['enablerss']) AND $_POST['enablerss'] == 'on') echo 'true'; else echo 'false';?>">
+			<input type="hidden" name="enablerss" value="<?php if ($_POST['enablerss'] == 'on') echo 'true'; else echo 'false';?>">
 			<input type="hidden" name="rss_title" value="<?php echo $_POST['rss_title'];?>">
 			<input type="hidden" name="rss_link" value="<?php echo $_POST['rss_link'];?>">
 			<input type="hidden" name="rss_description" value="<?php echo $_POST['rss_description'];?>">

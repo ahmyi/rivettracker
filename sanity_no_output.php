@@ -1,30 +1,18 @@
 <?php
 require_once("config.php");
 require_once("funcsv2.php");
-
 $summaryupdate = array();
+$sql->query("LOCK TABLES ".$prefix."summary WRITE, ".$prefix."namemap READ");
 
-// Non-persistant: we lock tables!
-$db = mysql_connect($dbhost, $dbuser, $dbpass) or die(errorMessage() . "Tracker error: can't connect to database - ".mysql_error() . "</p>");
-mysql_select_db($database) or die(errorMessage() . "Tracker error: can't open database $database - ".mysql_error() . "</p>");
-
-
-quickQuery("LOCK TABLES ".$prefix."summary WRITE, ".$prefix."namemap READ");
-
-$results = mysql_query("SELECT ".$prefix."summary.info_hash, seeds, leechers, dlbytes, ".$prefix."namemap.filename FROM ".$prefix."summary LEFT JOIN ".$prefix."namemap ON ".$prefix."summary.info_hash = ".$prefix."namemap.info_hash");
-
+$results = $sql->query("SELECT ".$prefix."summary.info_hash, seeds, leechers, dlbytes, ".$prefix."namemap.filename FROM ".$prefix."summary LEFT JOIN ".$prefix."namemap ON ".$prefix."summary.info_hash = ".$prefix."namemap.info_hash");
 $i = 0;
-
-while ($row = mysql_fetch_row($results))
+while ($row = $sql->fetch_row())
 {
 	$writeout = "row" . $i % 2;
 	list($hash, $seeders, $leechers, $bytes, $filename) = $row;
-	if (isset($locking) && $locking)
-	{
-		//peercaching ALWAYS on
-		quickQuery("LOCK TABLES ".$prefix."x$hash WRITE, ".$prefix."y$hash WRITE, ".$prefix."summary WRITE");
-	}
-	$results2 = mysql_query("SELECT status, COUNT(status) FROM ".$prefix."x$hash GROUP BY status");
+	if ($locking)
+		$sql->query("LOCK TABLES ".$prefix."x$hash WRITE, ".$prefix."y$hash WRITE, ".$prefix."summary WRITE");
+	$results2 = $sql->query("SELECT status, COUNT(status) FROM ".$prefix."x$hash GROUP BY status");
 
 	if (!$results2)
 	{
@@ -33,7 +21,7 @@ while ($row = mysql_fetch_row($results))
 	}
 
 	$counts = array();
-	while ($row = mysql_fetch_row($results2))
+	while ($row = $results2->fetch_row())
 		$counts[$row[0]] = $row[1];	
 	if (!isset($counts["leecher"]))
 		$counts["leecher"] = 0;
@@ -41,24 +29,18 @@ while ($row = mysql_fetch_row($results))
 		$counts["seeder"] = 0;
 
 	if ($counts["leecher"] != $leechers)
-		quickQuery("UPDATE ".$prefix."summary SET leechers=".$counts["leecher"]." WHERE info_hash=\"$hash\"");
-
+		$sql->query("UPDATE ".$prefix."summary SET leechers=".$counts["leecher"]." WHERE info_hash=\"$hash\"");
 	if ($counts["seeder"] != $seeders)
-		quickQuery("UPDATE ".$prefix."summary SET seeds=".$counts["seeder"]." WHERE info_hash=\"$hash\"");
-		
+		$sql->query("UPDATE ".$prefix."summary SET seeds=".$counts["seeder"]." WHERE info_hash=\"$hash\"");
 	if ($counts["leecher"] == 0)
 	{
 		//If there are no leechers, set the speed to zero
 		quickQuery("UPDATE ".$prefix."summary set speed=0 WHERE info_hash=\"$hash\"");
 	}
-	
-
 	if ($bytes < 0)
-		quickQuery("UPDATE ".$prefix."summary SET dlbytes=0 WHERE info_hash=\"$hash\"");
-
+		$sql->query("UPDATE ".$prefix."summary SET dlbytes=0 WHERE info_hash=\"$hash\"");
 	myTrashCollector($hash, $report_interval, time(), $writeout);
-
-	$result = mysql_query("SELECT ".$prefix."x$hash.sequence FROM ".$prefix."x$hash LEFT JOIN ".$prefix."y$hash ON ".$prefix."x$hash.sequence = ".$prefix."y$hash.sequence WHERE ".$prefix."y$hash.sequence IS NULL") or die(errorMessage() . "" . mysql_error() . "</p>");
+	$result = $sql->query("SELECT ".$prefix."x$hash.sequence FROM ".$prefix."x$hash LEFT JOIN ".$prefix."y$hash ON ".$prefix."x$hash.sequence = ".$prefix."y$hash.sequence WHERE ".$prefix."y$hash.sequence IS NULL") or die(errorMessage() . "" . mysql_error() . "</p>");
 	if (mysql_num_rows($result) > 0)
 	{
 		$row = array();
@@ -71,7 +53,7 @@ while ($row = mysql_fetch_row($results))
 		while ($row = mysql_fetch_assoc($query))
 		{
 			$compact = mysql_escape_string(pack('Nn', ip2long($row["ip"]), $row["port"]));
-				$peerid = mysql_escape_string('2:ip' . strlen($row["ip"]) . ':' . $row["ip"] . '7:peer id20:' . hex2bin($row["peer_id"]) . "4:porti{$row["port"]}e");
+				$peerid = mysql_escape_string('2:ip' . strlen($row["ip"]) . ':' . $row["ip"] . '7:peer id20:' . hex3bin($row["peer_id"]) . "4:porti{$row["port"]}e");
 			$no_peerid = mysql_escape_string('2:ip' . strlen($row["ip"]) . ':' . $row["ip"] . "4:porti{$row["port"]}e");
 			mysql_query("INSERT INTO ".$prefix."y$hash SET sequence=\"{$row["sequence"]}\", compact=\"$compact\", with_peerid=\"$peerid\", without_peerid=\"$no_peerid\"");
 		}
@@ -115,11 +97,9 @@ while ($row = mysql_fetch_row($results))
 
 function myTrashCollector($hash, $timeout, $now, $writeout)
 {
-	require("config.php");
  	$peers = loadLostPeers($hash, $timeout);
-	for ($i=0; $i < $peers["size"]; $i++) {
+ 	for ($i=0; $i < $peers["size"]; $i++)
 	        killPeer($peers[$i]["peer_id"], $hash, $peers[$i]["bytes"], $peers[$i]);
-	}
  	quickQuery("UPDATE ".$prefix."summary SET lastcycle='$now' WHERE info_hash='$hash'");
 }
 

@@ -10,26 +10,27 @@ if ($_POST['legalterms'] != "on")
 	exit();
 }
 
-if (md5($_POST['f_user'].$_POST['f_pass']) == $admin_password && $_POST['f_user'] == $admin_username)
+if($_POST['login'] == "authentification")
 {
-	//successful admin login
-	session_start();
-	$_SESSION['admin_logged_in'] = true;
-	header("Location: admin.php");
-	exit();
+  $user = $sql->real_escape_string($_POST['f_user']);
+  $pass = md5($sql->real_escape_string($_POST['f_pass']));
+  $result=$sql->query("select * from `user` where (`user`='$user' and `pass`='$pass')");
+  if($result->num_rows == 1)
+  {
+      session_start();
+      $data = $result->fetch_row();
+      if($data[4] == 1)
+      {
+        $_SESSION['admin_logged_in'] = true;
+        exit(header("Location: admin.php"));
+      }
+      else
+      {
+        $_SESSION['upload_logged_in'] = true;
+        exit(header("Location: index.php"));
+      }
+  }
+  else
+    exit(header("Location: authenticate.php?status=error"));
 }
-
-if (md5($_POST['f_user'].$_POST['f_pass']) == $upload_password && $_POST['f_user'] == $upload_username)
-{
-	//successful upload login
-	session_start();
-	$_SESSION['upload_logged_in'] = true;
-	header("Location: index.php");
-	exit();
-}
-
-//Username or password was incorrect at this point!
-header("Location: authenticate.php?status=error");
-exit();
-
 ?>
