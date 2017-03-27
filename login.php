@@ -3,12 +3,8 @@
 //Validates Username and Password
 require_once ("config.php");
 
-if ($_POST['legalterms'] != "on")
-{
-	//did not agree to legal terms, go back
-	header("Location: authenticate.php?status=legalterms");
-	exit();
-}
+if($_POST['legalterms'] != "on")
+	exit(header("Location: authenticate.php?status=legalterms"));	//did not agree to legal terms, go back
 
 if($_POST['login'] == "authentification")
 {
@@ -22,11 +18,13 @@ if($_POST['login'] == "authentification")
       if($data[4] == 1)
       {
         $_SESSION['admin_logged_in'] = true;
+        $_SESSION['username'] = $user;
         exit(header("Location: admin.php"));
       }
       else
       {
         $_SESSION['upload_logged_in'] = true;
+        $_SESSION['username'] = $user;
         exit(header("Location: index.php"));
       }
   }
