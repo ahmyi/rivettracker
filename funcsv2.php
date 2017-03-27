@@ -1,5 +1,46 @@
 <?php
 require_once('config.php');
+
+function stats() {
+  $query = "SELECT SUM(".$prefix."namemap.size), SUM(".$prefix."summary.seeds), SUM(".$prefix."summary.leechers), SUM(".$prefix."summary.finished), SUM(".$prefix."summary.dlbytes), SUM(".$prefix."summary.speed) FROM ".$prefix."summary LEFT JOIN ".$prefix."namemap ON ".$prefix."summary.info_hash = ".$prefix."namemap.info_hash";
+  $results = $sql->query($query) or die(errorMessage() . "Can't do SQL query - " . mysql_error() . "</p>");
+  $data = $results->fetch_row();
+  $toret ='
+  <div class="table-responsive">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Total Space Used</th>
+          <th>Seeders</th>
+          <th>Leechers</th>
+          <th>Completed D/Ls</th>
+          <th>Total Traffic</th>
+          <th>~Speed</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+  ';
+  if($data[0] != null) //if there are no torrents in database, don't show anything
+  {
+    $toret .= "<td>" . bytesToString($data[0]) . "</td>";
+    $toret .= "<td>" . $data[1] . "</td>";
+    $toret .= "<td>" . $data[2] . "</td>";
+    $toret .= "<td>" . $data[3] . "</td>";
+    $toret .= "<td>" . bytesToString($data[4]) . "</td>";
+    if($GLOBALS["countbytes"]) //stop count bytes OFF, OK to do speed calculation
+    {
+      if ($data[5] > 2097152)
+        $toret .= "<td align=\"center\">" . round($data[5] / 1048576, 2) . " MB/sec</td>\n";
+      else
+        $toret .= "<td align=\"center\">" . round($data[5] / 1024, 2) . " KB/sec</td>\n";
+    }
+    else
+      $toret .= "<td align=\"center\">No Info Available</td>\n";
+    $toret .= "</tr></tbody></table>";
+    return $toret;
+  }
+}
 if(function_exists("bcadd"))
 {
 	function sqlAdd($left, $right)

@@ -11,8 +11,6 @@ if (!$_SESSION['admin_logged_in'] && !$_SESSION['upload_logged_in'])
 	exit();
 }
 ?>
-
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html>
 <head>
 	<title>Add Torrent to Tracker</title>
@@ -57,7 +55,7 @@ function addTorrent()
 			endOutput();
 			exit;
 		}
-		if ($_POST["httpseed"] == "enabled" && $_POST["relative_path"] == "")
+		if (@$_POST["httpseed"] == "enabled" && @$_POST["relative_path"] == "")
 		{
 			echo errorMessage() . "Error: HTTP seeding was checked however no relative path was given.</p>\n";
 			endOutput();
@@ -84,13 +82,13 @@ function addTorrent()
 				}
 			}
 		}
-		if ($_POST["getrightseed"] == "enabled" && $_POST["httpftplocation"] == "")
+		if (@$_POST["getrightseed"] == "enabled" && @$_POST["httpftplocation"] == "")
 		{
 			echo errorMessage() . "Error: GetRight HTTP seeding was checked however no URL was given.</p>\n";
 			endOutput();
 			exit;
 		}
-		if ($_POST["getrightseed"] == "enabled" && (Substr($_POST["httpftplocation"], 0, 7) != "http://" && Substr($_POST["httpftplocation"], 0, 6) != "ftp://"))
+		if (@$_POST["getrightseed"] == "enabled" && (Substr(@$_POST["httpftplocation"], 0, 7) != "http://" && Substr(@$_POST["httpftplocation"], 0, 6) != "ftp://"))
 		{
 			echo errorMessage() . "Error: GetRight HTTP seeding URL must start with http:// or ftp://</p>\n";
 			endOutput();
@@ -157,8 +155,8 @@ function addTorrent()
 		echo errorMessage() . "Error: The Torrent URL does not start with http:// Make sure you entered a correct URL.</p>\n";
 		endOutput();
 	}
-
-	$query = "INSERT INTO ".$prefix."namemap (info_hash, filename, url, size, pubDate) VALUES (\"$hash\", \"$filename\", \"$url\", \"$total_size\", \"" . date('D, j M Y h:i:s') . "\")";
+  $magent = 'magnet:?xt=urn:btih:'.strtoupper($hash)."&tr=".rawurlencode($website_url . substr($_SERVER['REQUEST_URI'], 0, -15) . "announce.php");
+	$query = "INSERT INTO ".$prefix."namemap (info_hash, filename, url, size, pubDate, magnet) VALUES (\"$hash\", \"$filename\", \"$url\", \"$total_size\", \"" . date('D, j M Y h:i:s') . "\", '$magent')";
 	$status = makeTorrent($hash, true);
 	$sql->query($query);
 	if ($status)

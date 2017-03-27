@@ -10,7 +10,7 @@ Target Server Type    : MYSQL
 Target Server Version : 100113
 File Encoding         : 65001
 
-Date: 2017-03-27 16:57:31
+Date: 2017-03-28 00:44:41
 */
 
 SET FOREIGN_KEY_CHECKS=0;
@@ -35,6 +35,7 @@ CREATE TABLE `namemap` (
   `url` varchar(250) NOT NULL DEFAULT '',
   `size` bigint(20) unsigned NOT NULL,
   `pubDate` varchar(25) NOT NULL DEFAULT '',
+  `magnet` text,
   PRIMARY KEY (`info_hash`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
@@ -77,7 +78,7 @@ CREATE TABLE `timestamps` (
   `delta` smallint(5) unsigned NOT NULL,
   PRIMARY KEY (`sequence`),
   KEY `sorting` (`info_hash`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=latin1;
 
 -- ----------------------------
 -- Table structure for user

@@ -6,12 +6,12 @@ $sql->query("LOCK TABLES ".$prefix."summary WRITE, ".$prefix."namemap READ");
 
 $results = $sql->query("SELECT ".$prefix."summary.info_hash, seeds, leechers, dlbytes, ".$prefix."namemap.filename FROM ".$prefix."summary LEFT JOIN ".$prefix."namemap ON ".$prefix."summary.info_hash = ".$prefix."namemap.info_hash");
 $i = 0;
-while ($row = $sql->fetch_row())
+while ($row = $results->fetch_row())
 {
 	$writeout = "row" . $i % 2;
 	list($hash, $seeders, $leechers, $bytes, $filename) = $row;
-	if ($locking)
-		$sql->query("LOCK TABLES ".$prefix."x$hash WRITE, ".$prefix."y$hash WRITE, ".$prefix."summary WRITE");
+	// if($locking)
+		// $sql->query("LOCK TABLES ".$prefix."x$hash WRITE, ".$prefix."y$hash WRITE, ".$prefix."summary WRITE");
 	$results2 = $sql->query("SELECT status, COUNT(status) FROM ".$prefix."x$hash GROUP BY status");
 
 	if (!$results2)

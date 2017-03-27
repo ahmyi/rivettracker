@@ -371,7 +371,7 @@ if (isset($_FILES["torrent"]) || isset($_POST["url"]) || isset($_GET["url"]))
 	{
 		echo "<a href=\"newtorrents.php\"><img src=\"images/add.png\" border=\"0\" class=\"icon\" alt=\"Add Torrent\" title=\"Add Torrent\" /></a><a href=\"newtorrents.php\">Add Another Torrent</a><br>\n";
 		//add in Bittornado HTTP seeding spec
-		if ($_POST["httpseed"] == "enabled")
+		if (@$_POST["httpseed"] == "enabled")
 		{
 			//add information into database
 			$info = $array["info"] or die("Invalid torrent file.");
@@ -431,7 +431,7 @@ if (isset($_FILES["torrent"]) || isset($_POST["url"]) || isset($_GET["url"]))
 				$sql->query("INSERT INTO ".$prefix."webseedfiles (info_hash,filename,startpiece,endpiece,startpieceoffset,fileorder) values (\"$hash\", \"".mysql_real_escape_string($fsbase)."\", 0, ". (strlen($array["info"]["pieces"])/20 - 1).", 0, 0)");
 		}
 		
-		if ($_POST["getrightseed"] == "enabled" || $_POST["httpseed"] == "enabled") //only do one write
+		if (@$_POST["getrightseed"] == "enabled" || @$_POST["httpseed"] == "enabled") //only do one write
 		{
 			//edit torrent file
 			$read_httpseed = fopen("torrents/" . $filename . ".torrent", "rb");

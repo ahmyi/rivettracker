@@ -19,7 +19,7 @@ if($_POST['login'] == "authentification")
       {
         $_SESSION['admin_logged_in'] = true;
         $_SESSION['username'] = $user;
-        exit(header("Location: admin.php"));
+        exit(header("Location: index.php"));
       }
       else
       {

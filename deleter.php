@@ -47,7 +47,7 @@ if (isset($dbuser) && isset($dbpass))
 			$hash = substr($left, 1);
 			$query = "SELECT filename FROM ".$prefix."namemap WHERE info_hash =\"$hash\"";
 			$delete_file = $sql->query($query);
-			$delete = $sql->fetch_row($delete_file);
+			$delete = $delete_file->fetch_row();
 			unlink("torrents/" . $delete[0] . ".torrent");
 			$sql->query("DELETE FROM " . $prefix . "summary WHERE info_hash=\"$hash\"");
 			$sql->query("DELETE FROM " . $prefix . "namemap WHERE info_hash=\"$hash\""); 

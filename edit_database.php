@@ -29,9 +29,9 @@ if (!isset($_POST["editdatabase"]) && !isset($filename))
 	<?php
 	$rows = $sql->query("SELECT filename FROM ".$prefix."namemap ORDER BY filename ASC");
 	
-	while($data = $sql->fetch_row($rows))
+	while($data = $rows->fetch_row())
 	{
-		echo "<tr><td><a href=\"" . $PHP_SELF . "?filename=" . rawurlencode($data[0]) . "\">" . $data[0] . "</a></td></tr>\n";
+		echo "<tr><td><a href=\"" . htmlspecialchars($_SERVER["PHP_SELF"]) . "?filename=" . rawurlencode($data[0]) . "\">" . $data[0] . "</a></td></tr>\n";
   }
 	?>
 	</table>
@@ -42,9 +42,9 @@ if (isset($filename) && !isset($_POST["editdatabase"]))
 {
 	$rows = $sql->query("SELECT info_hash,filename,url,pubDate FROM ".$prefix."namemap WHERE filename = '" . $filename . "'");
 	
-	$data = $sql->fetch_row($rows);
+	$data = $rows->fetch_row();
 	?>
-	<form action="<?php echo $_SERVER["PHP_SELF"];?>" method="POST">
+	<form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]);?>" method="POST">
 	<input type="hidden" name="editdatabase" value="1">
 	<input type="hidden" name="<?php echo $data[0];?>" value="<?php echo $data[0];?>">
 	<input type="hidden" name="<?php echo $data[0] . "_old_filename";?>" value="<?php echo $data[1];?>">
