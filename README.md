@@ -1,9 +1,5 @@
-rivettracker
+#RivetTracker Reborn
 ============
-
-Basic Tracker or if ones avlible for Drupal.... thats stable then I will drop....
-
- USED for Mirroring ISO's for Sabayon.org , Spike-Pentesting, Pentoo, Gentoo,ETC. 
- As the VPS has space for.... 
- 
-curl FTP deploy for updates.... via travis....
+##Reborn of RivetTracker
+Lot of change update to php 7, added user to database and more many features, and ofc lot for improvement.
+![Alt Photos](https://i.imgur.com/rxFZOue.png)

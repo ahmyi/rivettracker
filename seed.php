@@ -1,7 +1,7 @@
 <?php
 //Used for HTTP seeding
 //Requires information in torrent file for client to use
-
+require_once("config.php");
 header("Content-Type: text/plain");
 
 //error_log("One");
@@ -43,7 +43,8 @@ function Lock($hash, $time = 0)
 
 function Unlock($hash)
 {
-        mysql_query("SELECT RELEASE_LOCK('$hash')");
+  global $sql;
+  $sql->query("SELECT RELEASE_LOCK('$hash')");
 }
 
 function reject($error = "503 Service Temporarily Unavailable", $message="")
@@ -53,39 +54,36 @@ function reject($error = "503 Service Temporarily Unavailable", $message="")
 	die;
 }
 
-mysql_connect($dbhost, $dbuser, $dbpass) or die;
-mysql_select_db($database) or die;
-
 if (!Lock("WebSeedLock", 2))
 	reject();
 
-$result = mysql_query("SELECT (UNIX_TIMESTAMP() - started) FROM ".$prefix."speedlimit");
-$row = mysql_fetch_row($result);
+$result = $sql->query("SELECT (UNIX_TIMESTAMP() - started) FROM ".$prefix."speedlimit");
+$row = $result->fetch_row();
 
 // If nothing has happened for a little while, do NOT
 // let that average enable massive bursts.
 if ($row[0] > 180)
-	mysql_query("UPDATE ".$prefix."speedlimit SET started=UNIX_TIMESTAMP()-1, total_uploaded=total_uploaded+uploaded, uploaded=0");
+	$sql->query("UPDATE ".$prefix."speedlimit SET started=UNIX_TIMESTAMP()-1, total_uploaded=total_uploaded+uploaded, uploaded=0");
 
-$result = mysql_query("SELECT uploaded / (UNIX_TIMESTAMP() - started) FROM ".$prefix."speedlimit");
-$row = mysql_fetch_row($result);
+$result = $sql->query("SELECT uploaded / (UNIX_TIMESTAMP() - started) FROM ".$prefix."speedlimit");
+$row = $result->fetch_row();
 
 if ((float)($row[0]) > $max_upload_rate)
 {
-	$result = mysql_query("SELECT (uploaded/". $max_upload_rate . "+started) - UNIX_TIMESTAMP() FROM ".$prefix."speedlimit");
-	$row = mysql_fetch_row($result);
+	$result = $sql->query("SELECT (uploaded/". $max_upload_rate . "+started) - UNIX_TIMESTAMP() FROM ".$prefix."speedlimit");
+	$row = $result->fetch_row();
 	reject("503 Service Temporarily Unavailable", (int)$row[0] + mt_rand(1,30));
 }
 
-$result = mysql_query("SELECT seeds FROM ".$prefix."summary WHERE info_hash=$info_hash");
+$result = $sql->query("SELECT seeds FROM ".$prefix."summary WHERE info_hash=$info_hash");
 if ($result)
 {
 	//error_log("Doing PHPBT check");
-	$row = mysql_fetch_assoc($result);
+	$row = $result->fetch_assoc();
 	if ($row["seeds"] > 5) //if there are seeds available, don't use HTTP seeding
 		reject();
 }
-if (mysql_num_rows($result) == 0) //hash isn't even in database!
+if ($result->num_rows == 0) //hash isn't even in database!
 {
 	//reject em!
 	reject();
@@ -103,15 +101,15 @@ if ($lockno == $GLOBALS["max_uploads"])
 
 
 // Get to work!
-$result = mysql_query("SELECT ".$prefix."summary.piecelength, ".$prefix."summary.numpieces FROM ".$prefix."summary WHERE info_hash=\"$info_hash\"");
+$result = $sql->query("SELECT ".$prefix."summary.piecelength, ".$prefix."summary.numpieces FROM ".$prefix."summary WHERE info_hash=\"$info_hash\"");
 if (!$result)
 	reject("500 Internal Server Error");
 
-$config = mysql_fetch_assoc($result);
+$config = $result->etch_assoc();
 if (!$config)
 	reject("403 Forbidden");
 
-$result = mysql_query("SELECT * FROM ".$prefix."webseedfiles WHERE info_hash=\"$info_hash\" ORDER BY fileorder");
+$result = $sql->query("SELECT * FROM ".$prefix."webseedfiles WHERE info_hash=\"$info_hash\" ORDER BY fileorder");
 
 if ($config["numpieces"] < $piece || $piece < 0)
 	reject("400 Bad Request");
@@ -121,11 +119,10 @@ if ($config["numpieces"] < $piece || $piece < 0)
 $xmit = "";
 $xmitbytes = 0;
 
-while ($row = mysql_fetch_assoc($result))
+while($row = $result->fetch_assoc())
 {
 	if (!($piece >= $row["startpiece"] && $piece <= $row["endpiece"]))
 		continue;
-
 	$offset = ($row["startpiece"] == $piece) ? 0 : (($piece - $row["startpiece"])*$config["piecelength"] - $row["startpieceoffset"]);
 	$fd = fopen($row["filename"], "rb") or reject("500 Internal Server Error");
 	if (fseek($fd, $offset) != 0)
@@ -163,12 +160,12 @@ if (isset($_GET["ranges"]))
 		$myxmit .= substr($xmit, $start, $stop-$start+1);
 	}
 	header("Content-Length: ".strlen($myxmit));
-	mysql_query("UPDATE ".$prefix."speedlimit SET uploaded=uploaded+".strlen($myxmit));
+	$sql->query("UPDATE ".$prefix."speedlimit SET uploaded=uploaded+".strlen($myxmit));
 	echo $myxmit;
 }
 else
 {
-	mysql_query("UPDATE ".$prefix."speedlimit SET uploaded=uploaded+$xmitbytes");
+	$sql->query("UPDATE ".$prefix."speedlimit SET uploaded=uploaded+$xmitbytes");
 	header("Content-Length: $xmitbytes");
 	echo $xmit;
 }

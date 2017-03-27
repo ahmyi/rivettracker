@@ -7,7 +7,7 @@ session_start();
 session_destroy();
 
 //get status
-$status = $_GET['status'];
+$status = @$_GET['status'];
 
 ?>
 
@@ -36,7 +36,7 @@ Password:</td>
 <input type="password" size="20" name="f_pass">
 </td></tr>
 <tr><td></td><td class="left">
-<input type="submit" name="LogIn" value="Log In">
+<input type="submit" name="login" value="authentification">
 </td></tr>
 </table>
 <?php

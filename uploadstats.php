@@ -1,19 +1,13 @@
 <?php
-
 require ("config.php");
 require ("funcsv2.php");
-//Check session
 session_start();
-
 if (!$_SESSION['admin_logged_in'])
 {
-	//check fails
 	header("Location: authenticate.php?status=session");
 	exit();
 }
 ?>
-
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 
 <html>
 <head>
@@ -25,23 +19,17 @@ if (!$_SESSION['admin_logged_in'])
 <h1>Upload Statistics</h1>
 <h2>This may be wildly inaccurate because when torrents are deleted, the bittorrent traffic is removed yet the HTTP traffic stays the same.</h2>
 <?php
-if ($GLOBALS["persist"])
-	$db = mysql_pconnect($dbhost, $dbuser, $dbpass) or die(errorMessage() . "Tracker error: can't connect to database - " . mysql_error() . "</p>");
-else
-	$db = mysql_connect($dbhost, $dbuser, $dbpass) or die(errorMessage() . "Tracker error: can't connect to database - " . mysql_error() . "</p>");
-mysql_select_db($database) or die(errorMessage() . "Tracker error: can't open database $database - " . mysql_error() . "</p>");
-
 $query = "SELECT SUM(".$prefix."summary.dlbytes) FROM ".$prefix."summary";
-$results = mysql_query($query) or die(errorMessage() . "Can't do SQL query - " . mysql_error() . "</p>");
-$data = mysql_fetch_row($results);
+$results = $sql->query($query);
+$data = $results->fetch_row();
 if ($data[0] == null)
 	$btuploaded = 0;
 else
 	$btuploaded = $data[0];
 	
 $query = "SELECT total_uploaded FROM ".$prefix."speedlimit";
-$results = mysql_query($query) or die(errorMessage() . "Can't do SQL query - " . mysql_error() . "</p>");
-$data = mysql_fetch_row($results);
+$results = $sql->query($query);
+$data = $results->fetch_row();
 $httpuploaded = $data[0];
 ?>
 <br>

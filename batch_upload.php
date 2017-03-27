@@ -29,7 +29,7 @@ if (!$_SESSION['admin_logged_in'])
 
 <?php
 
-if (isset($_FILES["zipfile"]) && $_FILES["zipfile"]["error"] != 4 && isset($_FILES["zipfile"]["tmp_name"])) //4 corresponds to the error no file uploaded
+if ($_FILES["zipfile"]["error"] != 4 && isset($_FILES["zipfile"]["tmp_name"])) //4 corresponds to the error no file uploaded
 {
 	?>
 	<a href="admin.php"><img src="images/admin.png" border="0" class="icon" alt="Admin Page" title="Admin Page" /></a><a href="admin.php">Return to Admin Page</a>
@@ -39,9 +39,6 @@ if (isset($_FILES["zipfile"]) && $_FILES["zipfile"]["error"] != 4 && isset($_FIL
 	
 	if ($zip == true)
 	{
-		$db = mysql_connect($dbhost, $dbuser, $dbpass) or die(errorMessage() . "Couldn't connect to the database, contact the administrator</p>");
-		mysql_select_db($database) or die(errorMessage() . "Can't open the database.</p>");
-	
 	   while ($zip_entry = zip_read($zip))
 	   {
 	   	echo "Name: " . zip_entry_name($zip_entry) . "<br>\n";
@@ -53,8 +50,8 @@ if (isset($_FILES["zipfile"]) && $_FILES["zipfile"]["error"] != 4 && isset($_FIL
 			   	//read in file from zip
 			  		$buffer = zip_entry_read($zip_entry, zip_entry_filesize($zip_entry));
 			      //go through each torrent file and add it if possible
-					require_once ("BDecode.php");
-					require_once ("BEncode.php");
+					require_once("BDecode.php");
+					require_once("BEncode.php");
 					
 					$tracker_url = $website_url . substr($_SERVER['REQUEST_URI'], 0, -16) . "announce.php";
 					
@@ -94,7 +91,7 @@ if (isset($_FILES["zipfile"]) && $_FILES["zipfile"]["error"] != 4 && isset($_FIL
 					
 					//Validate torrent file, make sure everything is correct
 					$filename = $array["info"]["name"];
-					$filename = mysql_escape_string($filename);
+					$filename = $sql->real_escape_string($filename);
 					$filename = clean($filename);
 				
 					if ((strlen($hash) != 40) || !verifyHash($hash))
@@ -163,7 +160,7 @@ else
 	files before you zip and upload the file.  If you are uploading a very large zip file this may take some time...</p>
 	
 	<?php
-	if (function_exists("zip_open"))
+	if (function_exists(zip_open))
 	{
 		?>
 		<form enctype="multipart/form-data" action="<?php echo $_SERVER["PHP_SELF"];?>" method="post">

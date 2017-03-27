@@ -11,8 +11,6 @@ if (!$_SESSION['admin_logged_in'] && !$_SESSION['upload_logged_in'])
 	exit();
 }
 ?>
-
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html>
 <head>
 	<title>Add Torrent to Tracker</title>
@@ -35,22 +33,15 @@ function addTorrent()
 {
 	require ("config.php");
 	$tracker_url = $website_url . substr($_SERVER['REQUEST_URI'], 0, -15) . "announce.php";
-	
 	$hash = strtolower($_POST["hash"]);
-
-	$db = mysql_connect($dbhost, $dbuser, $dbpass) or die(errorMessage() . "Couldn't connect to the database, contact the administrator</p>");
-	mysql_select_db($database) or die(errorMessage() . "Can't open the database.</p>");
-	
 	require_once ("funcsv2.php");
 	require_once ("BDecode.php");
 	require_once ("BEncode.php");
-	
 	if ($_FILES["torrent"]["error"] != 4)	
 	{
 		$fd = fopen($_FILES["torrent"]["tmp_name"], "rb") or die(errorMessage() . "File upload error 1</p>\n");
 		is_uploaded_file($_FILES["torrent"]["tmp_name"]) or die(errorMessage() . "File upload error 2</p>\n");
 		$alltorrent = fread($fd, filesize($_FILES["torrent"]["tmp_name"]));
-
 		$array = BDecode($alltorrent);
 		if (!$array)
 		{
@@ -58,39 +49,19 @@ function addTorrent()
 			endOutput();
 			exit;
 		}
-
-		if (isset($array["announce-list"])) {
-			//multiple trackers are listed
-			$found_tracker = false;
-			for ($i = 0; $i < count($array["announce-list"]); $i++) {
-				if (strtolower($array["announce-list"][$i][0]) == $tracker_url) {
-					$found_tracker = true;
-					break;
-				}
-			}
-			if ($found_tracker == false)
-			{
-				echo errorMessage() . "Error: Multiple trackers were found but none of them match the
-					announce URL:<br>$tracker_url<br>Please re-create and re-upload the torrent.</p>\n";
-				endOutput();
-				exit;
-			}
-		} else {
-			//a single tracker is listed
-			if (strtolower($array["announce"]) != $tracker_url) {
-				echo errorMessage() . "Error: The tracker announce URL does not match this:<br>$tracker_url<br>Please re-create and re-upload the torrent.</p>\n";
-				endOutput();
-				exit;
-			}
+		if (strtolower($array["announce"]) != $tracker_url)
+		{
+			echo errorMessage() . "Error: The tracker announce URL does not match this:<br>$tracker_url<br>Please re-create and re-upload the torrent.</p>\n";
+			endOutput();
+			exit;
 		}
-
-		if (isset($_POST["httpseed"]) && $_POST["httpseed"] == "enabled" && $_POST["relative_path"] == "")
+		if (@$_POST["httpseed"] == "enabled" && @$_POST["relative_path"] == "")
 		{
 			echo errorMessage() . "Error: HTTP seeding was checked however no relative path was given.</p>\n";
 			endOutput();
 			exit;
 		}
-		if (isset($_POST["httpseed"]) && $_POST["httpseed"] == "enabled" && $_POST["relative_path"] != "")
+		if ($_POST["httpseed"] == "enabled" && $_POST["relative_path"] != "")
 		{
 			if (Substr($_POST["relative_path"], -1) == "/")
 			{
@@ -111,15 +82,13 @@ function addTorrent()
 				}
 			}
 		}
-		if (isset($_POST["getrightseed"]) && $_POST["getrightseed"] == "enabled" && $_POST["httpftplocation"] == "")
+		if (@$_POST["getrightseed"] == "enabled" && @$_POST["httpftplocation"] == "")
 		{
 			echo errorMessage() . "Error: GetRight HTTP seeding was checked however no URL was given.</p>\n";
 			endOutput();
 			exit;
 		}
-		if (isset($_POST["getrightseed"]) && $_POST["getrightseed"] == "enabled" &&
-			(Substr($_POST["httpftplocation"], 0, 7) != "http://" && Substr($_POST["httpftplocation"], 0, 6) != "ftp://")
-		)
+		if (@$_POST["getrightseed"] == "enabled" && (Substr(@$_POST["httpftplocation"], 0, 7) != "http://" && Substr(@$_POST["httpftplocation"], 0, 6) != "ftp://"))
 		{
 			echo errorMessage() . "Error: GetRight HTTP seeding URL must start with http:// or ftp://</p>\n";
 			endOutput();
@@ -136,7 +105,6 @@ function addTorrent()
 			echo errorMessage() . "Unable to move " . $_FILES["torrent"]["tmp_name"] . " to torrents/</p>\n";
 		}	
 	}
-	
 
 	if (isset($_POST["filename"]))
 		$filename = clean($_POST["filename"]);
@@ -155,7 +123,6 @@ function addTorrent()
 			$filename = $array["info"]["name"];
 	}
 	
-
 	//figure out total size of all files in torrent
 	$info = $array["info"];
 	$total_size = 0;
@@ -173,9 +140,9 @@ function addTorrent()
 	
 	//Validate torrent file, make sure everything is correct
 	
-	$filename = mysql_escape_string($filename);
+	$filename = $sql->real_escape_string($filename);
 	$filename = htmlspecialchars(clean($filename));
-	$url = htmlspecialchars(mysql_escape_string($url));
+	$url = htmlspecialchars($sql->real_escape_string($url));
 
 	if ((strlen($hash) != 40) || !verifyHash($hash))
 	{
@@ -188,10 +155,10 @@ function addTorrent()
 		echo errorMessage() . "Error: The Torrent URL does not start with http:// Make sure you entered a correct URL.</p>\n";
 		endOutput();
 	}
-
-	$query = "INSERT INTO ".$prefix."namemap (info_hash, filename, url, size, pubDate) VALUES (\"$hash\", \"$filename\", \"$url\", \"$total_size\", \"" . date('D, j M Y h:i:s') . "\")";
+  $magent = 'magnet:?xt=urn:btih:'.strtoupper($hash)."&tr=".rawurlencode($website_url . substr($_SERVER['REQUEST_URI'], 0, -15) . "announce.php");
+	$query = "INSERT INTO ".$prefix."namemap (info_hash, filename, url, size, pubDate, magnet) VALUES (\"$hash\", \"$filename\", \"$url\", \"$total_size\", \"" . date('D, j M Y h:i:s') . "\", '$magent')";
 	$status = makeTorrent($hash, true);
-	quickQuery($query);
+	$sql->query($query);
 	if ($status)
 	{
 		echo "<p class=\"success\">Torrent was added successfully.</p>\n";
@@ -211,8 +178,8 @@ function addTorrent()
 		echo errorMessage() . "There were some errors. Check if this torrent has been added previously.</p>\n";
 		//delete torrent file if it doesn't exist in database
 		$query = "SELECT COUNT(*) FROM ".$prefix."summary WHERE info_hash = '$hash'";
-		$results = mysql_query($query) or die(errorMessage() . "Can't do SQL query - " . mysql_error() . "</p>");
-		$data = mysql_fetch_row($results);
+		$results = $sql->query($query);
+		$data = $results->fetch_row();
 		if ($data[0] == 0)
 		{
 			if (file_exists("torrents/" . $_FILES['torrent']['name']))
@@ -226,7 +193,7 @@ function addTorrent()
 
 function endOutput() 
 {
-	require ("config.php");
+	require("config.php");
 	$tracker_url = $website_url . substr($_SERVER['REQUEST_URI'], 0, -15) . "announce.php";
 	?>
 	<p align="right"><a href="./docs/help.html"><img src="images/help.png" border="0" class="icon" alt="Help" title="Help" /></a><a href="./docs/help.html">Help</a></p>

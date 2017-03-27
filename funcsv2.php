@@ -1,10 +1,47 @@
 <?php
+require_once('config.php');
 
-
-//////////////////////////////////////////////////////////////////
-// Worker functions
-
-if (function_exists("bcadd"))
+function stats() {
+  $query = "SELECT SUM(".$prefix."namemap.size), SUM(".$prefix."summary.seeds), SUM(".$prefix."summary.leechers), SUM(".$prefix."summary.finished), SUM(".$prefix."summary.dlbytes), SUM(".$prefix."summary.speed) FROM ".$prefix."summary LEFT JOIN ".$prefix."namemap ON ".$prefix."summary.info_hash = ".$prefix."namemap.info_hash";
+  $results = $sql->query($query) or die(errorMessage() . "Can't do SQL query - " . mysql_error() . "</p>");
+  $data = $results->fetch_row();
+  $toret ='
+  <div class="table-responsive">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Total Space Used</th>
+          <th>Seeders</th>
+          <th>Leechers</th>
+          <th>Completed D/Ls</th>
+          <th>Total Traffic</th>
+          <th>~Speed</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+  ';
+  if($data[0] != null) //if there are no torrents in database, don't show anything
+  {
+    $toret .= "<td>" . bytesToString($data[0]) . "</td>";
+    $toret .= "<td>" . $data[1] . "</td>";
+    $toret .= "<td>" . $data[2] . "</td>";
+    $toret .= "<td>" . $data[3] . "</td>";
+    $toret .= "<td>" . bytesToString($data[4]) . "</td>";
+    if($GLOBALS["countbytes"]) //stop count bytes OFF, OK to do speed calculation
+    {
+      if ($data[5] > 2097152)
+        $toret .= "<td align=\"center\">" . round($data[5] / 1048576, 2) . " MB/sec</td>\n";
+      else
+        $toret .= "<td align=\"center\">" . round($data[5] / 1024, 2) . " KB/sec</td>\n";
+    }
+    else
+      $toret .= "<td align=\"center\">No Info Available</td>\n";
+    $toret .= "</tr></tbody></table>";
+    return $toret;
+  }
+}
+if(function_exists("bcadd"))
 {
 	function sqlAdd($left, $right)
 	{
@@ -31,31 +68,35 @@ else // BC vs SQL math
 // No error handling as we assume nothing can go wrong. :|
 function sqlAdd($left, $right)
 {
-	$query = 'SELECT '.$left.'+'.$right;
-	$results = mysql_query($query) or showError("Database error.");
-	return mysql_result($results,0,0);
+  global $sql;
+  //require('config.php');
+	$results = $sql->query("SELECT $left + $right") or showError("Database error.");
+	return $results->data_seek(0);
 }
 
 // Ditto
 function sqlSubtract($left, $right)
 {
+  global $sql;
 	$query = 'SELECT '.$left.'-'.$right;
-	$results = mysql_query($query) or showError("Database error");
-	return mysql_result($results,0,0);
+	$results = $sql->query($query) or showError("Database error");
+	return $results->data_seek(0);
 }
 
 function sqlDivide($left, $right)
 {
+  global $sql;
 	$query = 'SELECT '.$left.'/'.$right;
-	$results = mysql_query($query) or showError("Database error");
-	return mysql_result($results,0,0);
+	$results = $sql->query($query) or showError("Database error");
+	return $results->data_seek(0);
 }
 
 function sqlMultiply($left, $right)
 {
+  global $sql;
 	$query = 'SELECT '.$left.'*'.$right;
-	$results = mysql_query($query) or showError("Database error");
-	return mysql_result($results,0,0);
+	$results = $sql->query($query) or showError("Database error");
+	return $results->data_seek(0);
 }
 
 
@@ -64,20 +105,20 @@ function sqlMultiply($left, $right)
 // Runs a query with no regard for the result
 function quickQuery($query)
 {
-	$results = @mysql_query($query);
-	if (!is_bool($results))
-		mysql_free_result($results);
+  global $sql;
+	$results = @$sql->query($query);
+	if(!is_bool($results))
+		$results->free_result($results);
 	else
 		return $results;
 	return true;
 }
-if (!function_exists("hex2bin")){
-	function hex2bin ($input, $assume_safe=true)
-	{
-		if ($assume_safe !== true && ! ((strlen($input) % 2) === 0 || preg_match ('/^[0-9a-f]+$/i', $input)))
-			return "";
-		return pack('H*', $input );
-	}
+
+function hex3bin($input, $assume_safe=true)
+{
+	if ($assume_safe !== true && ! ((strlen($input) % 2) === 0 || preg_match ('/^[0-9a-f]+$/i', $input)))
+		return "";
+	return pack('H*', $input );
 }
 
 // Reports an error to the client in $message.
@@ -107,16 +148,16 @@ function makeTorrent($hash, $tolerate = false)
 		showError("makeTorrent: Received an invalid hash");
 	$result = true;
 	$query = "CREATE TABLE ".$prefix."x$hash (peer_id char(40) NOT NULL default '', bytes bigint NOT NULL default 0, ip char(50) NOT NULL default 'error.x', port smallint UNSIGNED NOT NULL default \"0\", status enum('leecher','seeder') NOT NULL, lastupdate int unsigned NOT NULL default 0, sequence int unsigned AUTO_INCREMENT NOT NULL, natuser enum('N', 'Y') not null default 'N', primary key(sequence), unique(peer_id)) ENGINE = innodb";
-	if (!@mysql_query($query))
+	if (!@$sql->query($query))
 		$result = false;
 	if (!$result && !$tolerate)
 		return false;
 	//peercaching is ALWAYS on
-	$query = "CREATE TABLE ".$prefix."y$hash (sequence int unsigned NOT NULL default 0, with_peerid char(101) NOT NULL default '', without_peerid char(40) NOT NULL default '', compact char(12) NOT NULL DEFAULT '', unique k (sequence)) DELAY_KEY_WRITE=1 CHECKSUM=0 ENGINE = innodb";
-	mysql_query($query);
+	$query = "CREATE TABLE ".$prefix."y$hash (sequence int unsigned NOT NULL default 0, with_peerid char(101) NOT NULL default '', without_peerid char(40) NOT NULL default '', compact char(6) NOT NULL DEFAULT '', unique k (sequence)) DELAY_KEY_WRITE=1 CHECKSUM=0 ENGINE = innodb";
+	$sql->query($query);
 		
 	$query = "INSERT INTO ".$prefix."summary set info_hash=\"".$hash."\", lastSpeedCycle=UNIX_TIMESTAMP()";
-	if (!@mysql_query($query))
+	if (!@$sql->query($query))
 		$result = false;
 	return $result;
 }
@@ -127,10 +168,8 @@ function verifyTorrent($hash)
 {
 	require("config.php"); //need prefix value...
 	$query = "SELECT COUNT(*) FROM ".$prefix."summary where info_hash=\"$hash\"";
-	$results = mysql_query($query);
-	
-	$res = mysql_result($results,0,0);
-	
+	$results = $sql->query($query);
+	$res = $results->data_seek(0);
 	if ($res == 1)
 		return true;
 
@@ -156,29 +195,27 @@ function getPeerInfo($user, $hash)
 	if (isset($GLOBALS["trackerid"]))
 	{
 		$query = "SELECT peer_id,bytes,ip,port,status,lastupdate,sequence FROM ".$prefix."x$hash WHERE sequence=${GLOBALS["trackerid"]}";
-		$results = mysql_query($query) or showError("Tracker error: invalid torrent");
-		$data = mysql_fetch_assoc($results);
+		$results = $sql->query($query) or showError("Tracker error: invalid torrent");
+		$data = $results->fetch_assoc();
 		if (!$data || $data["peer_id"] != $user)
 		{
 			// Damn, but don't crash just yet.
 			$query = "SELECT peer_id,bytes,ip,port,status,lastupdate,sequence FROM ".$prefix."x$hash WHERE peer_id=\"$user\"";
-			$results = mysql_query($query) or showError("Tracker error: invalid torrent"); 
-			$data = mysql_fetch_assoc($results);
+			$results = $sql->query($query) or showError("Tracker error: invalid torrent"); 
+			$data = $results->fetch_assoc();
 			$GLOBALS["trackerid"] = $data["sequence"];
 		}
 	}
 	else
 	{
 		$query = "SELECT peer_id,bytes,ip,port,status,lastupdate,sequence FROM ".$prefix."x$hash WHERE peer_id=\"$user\"";
-		$results = mysql_query($query) or showError("Tracker error: invalid torrent");
-		$data = mysql_fetch_assoc($results);
+		$results = $sql->query($query) or showError("Tracker error: invalid torrent");
+		$data = $results->fetch_assoc();
 		$GLOBALS["trackerid"] = $data["sequence"];
 
 	}
-	
 	if (!($data))
 		return false;
-	
 	return $data;
 }
 
@@ -189,11 +226,11 @@ function getRandomPeers($hash, $where="")
 
 	// Don't want to send a bad "num peers" for new seeds
 	if ($GLOBALS["NAT"])
-		$results = mysql_query("SELECT COUNT(*) FROM ".$prefix."x$hash WHERE natuser = 'N'");
+		$results = $sql->query("SELECT COUNT(*) FROM ".$prefix."x$hash WHERE natuser = 'N'");
 	else
-		$results = mysql_query("SELECT COUNT(*) FROM ".$prefix."x$hash");
+		$results = $sql->query("SELECT COUNT(*) FROM ".$prefix."x$hash");
 
-	$peercount = mysql_result($results, 0,0);
+	$peercount = $results->data_seek(0);
 
 	// ORDER BY RAND() is expensive. Don't do it when the load gets too high
 	if ($peercount < 500)
@@ -201,16 +238,16 @@ function getRandomPeers($hash, $where="")
 	else
 		$query = "SELECT ".((isset($_GET["no_peer_id"]) && $_GET["no_peer_id"] == 1) ? "" : "peer_id,")."ip, port, status FROM ".$prefix."x$hash LIMIT ".@mt_rand(0, $peercount - $GLOBALS["maxpeers"]).", ${GLOBALS['maxpeers']}";
 
-	$results = mysql_query($query);
+	$results = $sql->query($query);
 	if (!$results)
 		return false;
 
 	$peerno = 0;
-	while ($return[] = mysql_fetch_assoc($results))
+	while ($return[] = $results->fetch_assoc())
 		$peerno++;
 
-	array_pop ($return);
-	mysql_free_result($results);
+	array_pop($return);
+	$sql->free_result($results);
 	$return['size'] = $peerno;
  
 	return $return;
@@ -238,12 +275,11 @@ function killPeer($userid, $hash, $left, $assumepeer = false)
 		$bytes = 0;
 		$peer = $assumepeer;
 	}
-
-	quickQuery("DELETE FROM ".$prefix."x$hash WHERE peer_id=\"$userid\"");
-	if (mysql_affected_rows() == 1)
+  $data=$sql->query("DELETE FROM ".$prefix."x$hash WHERE peer_id=\"$userid\"");
+	if ($data->affected_rows == 1)
 	{
 		//peercaching ALWAYS on
-		quickQuery("DELETE FROM ".$prefix."y$hash WHERE sequence=" . $peer["sequence"]);
+		$datao=$sql->query("DELETE FROM ".$prefix."y$hash WHERE sequence=" . $peer["sequence"]);
 		if ($peer["status"] == "leecher")
 			summaryAdd("leechers", -1);
 		else
@@ -300,7 +336,7 @@ function sendPeerList($peers)
 		{
 			echo "d2:ip".strlen($peers[$i]["ip"]).":".$peers[$i]["ip"];
 			if (isset($peers[$i]["peer_id"]))
-				echo "7:peer id20:".hex2bin($peers[$i]["peer_id"]);
+				echo "7:peer id20:".hex3bin($peers[$i]["peer_id"]);
 			echo "4:porti".$peers[$i]["port"]."ee";
 		}
 		echo "e";
@@ -320,8 +356,8 @@ function sendPeerList($peers)
 function sendRandomPeers($info_hash)
 {
 	require("config.php");
-	$result = mysql_query("SELECT COUNT(*) FROM ".$prefix."y$info_hash");
-	$count = mysql_result($result, 0, 0);
+	$result = $sql->query("SELECT COUNT(*) FROM ".$prefix."y$info_hash");
+	$count = $result->data_seek(0);
 	
 	if (isset($_GET["compact"]) && $_GET["compact"] == '1')
 		$column = "compact";
@@ -352,17 +388,17 @@ function sendRandomPeers($info_hash)
 		echo "12:min intervali".$GLOBALS["min_interval"]."e";
 	echo "5:peers";
 
-	$result = mysql_query($query);
+	$result = $sql->query($query);
 	if ($column == "compact")
 	{
-		echo (mysql_num_rows($result) * 6) . ":";
-		while ($row = mysql_fetch_row($result))
-			echo str_pad(utf8_decode($row[0]), 6, chr(32));
+		echo ($result->num_rows * 6) . ":";
+		while ($row = $result->fetch_row())
+			echo str_pad($row[0], 6, chr(32));
 	}
 	else
 	{
 		echo "l";
-		while ($row = mysql_fetch_row($result))
+		while ($row = $result->fetch_row())
 			echo "d".$row[0]."e";
 		echo "e";
 	}
@@ -377,7 +413,7 @@ function sendRandomPeers($info_hash)
 function loadLostPeers($hash, $timeout)
 {
 	require("config.php"); //necessary for getting prefix value
-	$results = mysql_query("SELECT peer_id,bytes,ip,port,status,lastupdate,sequence from ".$prefix."x$hash where lastupdate < (UNIX_TIMESTAMP() - 2 * $timeout)");
+	$results = $sql->query("SELECT peer_id,bytes,ip,port,status,lastupdate,sequence from ".$prefix."x$hash where lastupdate < (UNIX_TIMESTAMP() - 2 * $timeout)");
 	$peerno = 0;
 	if (!$results)
 		return false;
@@ -386,7 +422,7 @@ function loadLostPeers($hash, $timeout)
 		$peerno++;	
 	array_pop($return);
 	$return["size"] = $peerno;
-	mysql_free_result($results);
+	$results->data_seek(0);
 	return $return;
 }
 
@@ -399,8 +435,8 @@ function trashCollector($hash, $timeout)
 	if (!Lock($hash))
 		return;
 	
-	$results = mysql_query("SELECT lastcycle FROM ".$prefix."summary WHERE info_hash='$hash'");
-	$lastcheck = (mysql_fetch_row($results));
+	$results = $sql->query("SELECT lastcycle FROM ".$prefix."summary WHERE info_hash='$hash'");
+	$lastcheck = ($results->fetch_row());
 	
 	// Check once every re-announce cycle
 	if (($lastcheck[0] + $timeout) < time())
@@ -417,8 +453,9 @@ function trashCollector($hash, $timeout)
 // Returns true on success, false on failure
 function Lock($hash, $time = 0)
 {
-	$results = mysql_query("SELECT GET_LOCK('$hash', $time)");
-	$string = mysql_fetch_row($results);
+  global $sql;
+	$results = $sql->query("SELECT GET_LOCK('$hash', $time)");
+	$string = $results->fetch_row();
 	if (strcmp($string[0], "1") == 0)
 		return true;
 	return false;
@@ -428,7 +465,8 @@ function Lock($hash, $time = 0)
 // Releases a lock. Ignores errors.
 function Unlock($hash)
 {
-	quickQuery("SELECT RELEASE_LOCK('$hash')");
+  global $sql;
+	$sql->query("SELECT RELEASE_LOCK('$hash')");
 }
 
 // Returns true if the lock is available
@@ -467,8 +505,8 @@ function isFireWalled($hash, $peerid, $ip, $port)
 		return true;
 
 	stream_set_timeout($fd, 5, 0);
-	fwrite($fd, chr(strlen($protocol_name)).$protocol_name.hex2bin("0000000000000000").
-		hex2bin($hash));
+	fwrite($fd, chr(strlen($protocol_name)).$protocol_name.hex3bin("0000000000000000").
+		hex3bin($hash));
 	
 	$data = fread($fd, strlen($protocol_name)+1+20+20+8); // ideally...
 
@@ -488,13 +526,13 @@ function isFireWalled($hash, $peerid, $ip, $port)
 	$offset += 8;
 	
 	// Download ID (hash)
-	if (substr($data, $offset, 20) != hex2bin($hash))
+	if (substr($data, $offset, 20) != hex3bin($hash))
 		return true;
 
 	$offset+=20;
 	
 	// Peer ID
-	if (substr($data, $offset, 20) != hex2bin($peerid))
+	if (substr($data, $offset, 20) != hex3bin($peerid))
 		return true;
 
 	
@@ -529,16 +567,16 @@ function runSpeed($info_hash, $delta)
 	quickQuery("INSERT IGNORE INTO ".$prefix."timestamps (info_hash, bytes, delta, sequence) SELECT '$info_hash' AS info_hash, dlbytes, UNIX_TIMESTAMP() - lastSpeedCycle, NULL FROM ".$prefix."summary WHERE info_hash=\"$info_hash\"");
 
 	// mysql blows sometimes so we have to read the data into php before updating it
-	$results = mysql_query('SELECT (MAX(bytes)-MIN(bytes))/SUM(delta), COUNT(*), MIN(sequence) FROM '.$prefix.'timestamps WHERE info_hash="'.$info_hash.'"' );
-	$data = mysql_fetch_row($results);
+	$results = $sql->query('SELECT (MAX(bytes)-MIN(bytes))/SUM(delta), COUNT(*), MIN(sequence) FROM '.$prefix.'timestamps WHERE info_hash="'.$info_hash.'"' );
+	$data = $results->fetch_row();
 	
-	$results2 = mysql_query('SELECT '.$prefix.'summary.leechers FROM '.$prefix.'summary WHERE info_hash="'.$info_hash.'"');
-	$data2 = mysql_fetch_row($results2);
+	$results2 = $sql->query('SELECT '.$prefix.'summary.leechers FROM '.$prefix.'summary WHERE info_hash="'.$info_hash.'"');
+	$data2 = $results2->fetch_row();
 	if ($data2[0] == 0) //if no leechers, speed is zero
 		$data[0] = 0;
 		
-	$results3 = mysql_query("SELECT MIN(d1.bytes), MAX(d1.bytes) FROM (SELECT bytes FROM ".$prefix."timestamps WHERE info_hash='".$info_hash."' ORDER BY sequence DESC LIMIT 5) AS d1");
-	$data3 = mysql_fetch_row($results3);
+	$results3 = $sql->query("SELECT MIN(d1.bytes), MAX(d1.bytes) FROM (SELECT bytes FROM ".$prefix."timestamps WHERE info_hash='".$info_hash."' ORDER BY sequence DESC LIMIT 5) AS d1");
+	$data3 = $results3->fetch_row();
 	//if the last 5 updates from clients show the same bytes, it's probably stalled, set speed to zero
 	if ($data3[0] == $data3[1])
 		$data[0] = 0;
@@ -549,9 +587,9 @@ function runSpeed($info_hash, $delta)
 	// if we have more than 20 drop the rest
 	//if ($data[1] == 21)
 		//quickQuery("DELETE FROM timestamps WHERE info_hash=\"$info_hash\" AND sequence=${data[2]}");
-	if ($data[1] > 21)
+	if($data[1] > 21)
 		// This query requires MySQL 4.0.x, but should rarely be used.
-		quickQuery ('DELETE FROM '.$prefix.'timestamps WHERE info_hash="'.$info_hash.'" ORDER BY sequence LIMIT '.($data['1'] - 20));
+		$sql->query('DELETE FROM '.$prefix.'timestamps WHERE info_hash="'.$info_hash.'" ORDER BY sequence LIMIT '.($data['1'] - 20));
 }
 
 // Schedules an update to the summary table. It gets so much traffic

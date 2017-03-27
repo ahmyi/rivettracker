@@ -5,7 +5,7 @@ require ("funcsv2.php");
 //Check session
 session_start();
 
-if (!$_SESSION['admin_logged_in'])
+if(!$_SESSION['admin_logged_in'])
 {
 	//check fails
 	header("Location: authenticate.php?status=session");

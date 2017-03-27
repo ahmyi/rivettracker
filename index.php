@@ -22,11 +22,13 @@ if ($hiddentracker == true)
 		exit();
 	}
 }
-?>
 
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+if(rand(1, 10) == 1)
+{
+	//10% of the time, run sanity_no_output.php to prune database and keep users fresh
+	include("sanity_no_output.php");
+}
 
-<?php
 //variables for column totals
 $total_disk_usage = 0;
 $total_seeders = 0;
@@ -38,105 +40,18 @@ $total_speed = 0;
 $scriptname = $_SERVER["PHP_SELF"] . "?";
 if (!isset($GLOBALS["countbytes"]))
 	$GLOBALS["countbytes"] = true;
-?>
-<html>
-<head>
-	<title><?php if ($GLOBALS["title"] != "") echo $GLOBALS["title"]; else echo "Tracker Statistics";?></title>
-	<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
-	<link rel="stylesheet" href="./css/style.css" type="text/css" />
-	<?php
-	if ($enablerss == true)
-		echo "<link rel=\"alternate\" title=\"" . $rss_title . "\" href=\"rss/rss.xml\" type=\"application/rss+xml\">";
-	?>
-</head>
-<body>
-<?php
-//display total stats as header on page
-if ($GLOBALS["persist"])
-	$db = mysql_pconnect($dbhost, $dbuser, $dbpass) or die(errorMessage() . "Tracker error: can't connect to database - " . mysql_error() . "</p>");
+
+include('header.php');
+if ($GLOBALS["title"] != "")
+  echo "<h1>".$GLOBALS["title"]."</h1>";
 else
-	$db = mysql_connect($dbhost, $dbuser, $dbpass) or die(errorMessage() . "Tracker error: can't connect to database - " . mysql_error() . "</p>");
-mysql_select_db($database) or die(errorMessage() . "Tracker error: can't open database $database - " . mysql_error() . "</p>");
-
-$query = "SELECT SUM(".$prefix."namemap.size), SUM(".$prefix."summary.seeds), SUM(".$prefix."summary.leechers), SUM(".$prefix."summary.finished), SUM(".$prefix."summary.dlbytes), SUM(".$prefix."summary.speed) FROM ".$prefix."summary LEFT JOIN ".$prefix."namemap ON ".$prefix."summary.info_hash = ".$prefix."namemap.info_hash";
-$results = mysql_query($query) or die(errorMessage() . "Can't do SQL query - " . mysql_error() . "</p>");
-$data = mysql_fetch_row($results);
+  echo "<h1>Tracker Index</h1>";
 ?>
-
-<center>
-<table>
-<tr>
-<th class="subheader">Total Space Used</th>
-<th class="subheader">Seeders</th>
-<th class="subheader">Leechers</th>
-<th class="subheader">Completed D/Ls</th>
-<th class="subheader">Bytes Transferred</th>
-<th class="subheader">Speed (rough estimate)</th>
-</tr>
-<tr>
-<?php
-if ($data[0] != null) //if there are no torrents in database, don't show anything
-{
-	echo "<td align=\"center\">" . bytesToString($data[0]) . "</td>\n";
-	echo "<td align=\"center\">" . $data[1] . "</td>\n";
-	echo "<td align=\"center\">" . $data[2] . "</td>\n";
-	echo "<td align=\"center\">" . $data[3] . "</td>\n";
-	echo "<td align=\"center\">" . bytesToString($data[4]) . "</td>\n";
-	if ($GLOBALS["countbytes"]) //stop count bytes OFF, OK to do speed calculation
-	{
-		if ($data[5] > 2097152)
-			echo "<td align=\"center\">" . round($data[5] / 1048576, 2) . " MB/sec</td>\n";
-		else
-			echo "<td align=\"center\">" . round($data[5] / 1024, 2) . " KB/sec</td>\n";
-	}
-	else
-		echo "<td align=\"center\">No Info Available</td>\n";
-}
-?>
-</tr>
-</table>
-</center>
-<br>
-
-<h1><?php if ($GLOBALS["title"] != "") echo $GLOBALS["title"]; else echo "Tracker Statistics";?></h1>
-<table width="100%">
-<tr>
-<td width="25%">
-<?php
-//Display logout option if logged in
-if ($hiddentracker == true)
-{
-	echo "Hello, <i>" . $_SESSION["username"] . "</i><br>";
-	echo "<a href=\"authenticate.php?status=logout\"><img src=\"images/logout.png\" border=\"0\" class=\"icon\" alt=\"Logout\" title=\"Logout\" /></a><a href=\"authenticate.php?status=logout\">Logout</a>";
-}
-?>
-</td>
-<td align="center">
-<a href="newtorrents.php"><img src="images/add.png" border="0" class="icon" alt="Add Torrent" title="Add Torrent" /></a><a href="newtorrents.php">Add Torrent to Tracker Database</a>
-<a href="admin.php"><img src="images/admin.png" border="0" class="icon" alt="Admin Page" title="Admin Page" /></a><a href="admin.php">Admin Page</a>
-</td>
-<td align="right" width="25%">
-
-<?php
-if (file_exists("rss/rss.xml"))
-{
-	echo "<a href='rss/rss.xml'><img src='images/rss-logo.png' border='0' class='icon' alt='RSS 2.0 Feed' title='RSS 2.0 Feed' /></a><a href='rss/rss.xml'>RSS 2.0 Feed</a>";
-}
-?>
-</td>
-</tr>
-</table>
-
-
 <table>
 <tr>
 	<?php
 	//Cleanup page number to prevent XSS
-	if (isset($_GET["page_number"])) {
-		$_GET["page_number"] = htmlspecialchars($_GET["page_number"]);
-	} else {
-		$_GET["page_number"] = "";
-	}
+	@$_GET["page_number"] = htmlspecialchars(@$_GET["page_number"]);
 	$scriptname = htmlspecialchars($scriptname);
 	
 	if (!isset($_GET["activeonly"]))
@@ -180,12 +95,6 @@ if (file_exists("rss/rss.xml"))
 </table>
 
 <?php
-if ($GLOBALS["persist"])
-	$db = mysql_pconnect($dbhost, $dbuser, $dbpass) or die(errorMessage() . "Tracker error: can't connect to database - " . mysql_error() . "</p>");
-else
-	$db = mysql_connect($dbhost, $dbuser, $dbpass) or die(errorMessage() . "Tracker error: can't connect to database - " . mysql_error() . "</p>");
-mysql_select_db($database) or die(errorMessage() . "Tracker error: can't open database $database - " . mysql_error() . "</p>");
-
 if (isset($_GET["seededonly"]))
 	$where = " WHERE seeds > 0";
 else if (isset($_GET["activeonly"]))
@@ -194,8 +103,8 @@ else
 	$where = " ";
 
 $query = "SELECT COUNT(*) FROM ".$prefix."summary $where";
-$results = mysql_query($query);
-$res = mysql_result($results,0,0);
+$results = $sql->query($query);
+$res = $results->data_seek(0);
 
 if (isset($_GET["activeonly"]))
 	$scriptname = $scriptname . "activeonly=yes&";
@@ -222,7 +131,7 @@ echo "</p>\n";
 <table>
 <tr>
 	<td>
-	<table class="torrentlist">
+	<table class="table table-bordered">
 
 	<!-- Column Headers -->
 	<tr>
@@ -246,13 +155,13 @@ else
 		$_GET["page_number"] = 1;
 	
 	$page_limit = ($_GET["page_number"] - 1) * 10;
-	$query = "SELECT ".$prefix."summary.info_hash, ".$prefix."summary.seeds, ".$prefix."summary.leechers, ".$prefix."summary.finished, ".$prefix."summary.dlbytes, ".$prefix."namemap.filename, ".$prefix."namemap.url, ".$prefix."namemap.size, ".$prefix."summary.speed FROM ".$prefix."summary LEFT JOIN ".$prefix."namemap ON ".$prefix."summary.info_hash = ".$prefix."namemap.info_hash $where ORDER BY ".$prefix."namemap.filename LIMIT $page_limit,10";
+	$query = "SELECT ".$prefix."summary.info_hash, ".$prefix."summary.seeds, ".$prefix."summary.leechers, ".$prefix."summary.finished, ".$prefix."summary.dlbytes, ".$prefix."namemap.filename, ".$prefix."namemap.url, ".$prefix."namemap.size, ".$prefix."summary.speed, ".$prefix."namemap.magnet FROM ".$prefix."summary LEFT JOIN ".$prefix."namemap ON ".$prefix."summary.info_hash = ".$prefix."namemap.info_hash $where ORDER BY ".$prefix."namemap.filename LIMIT $page_limit,10";
 }
 
-$results = mysql_query($query) or die(errorMessage() . "Can't do SQL query - " . mysql_error() . "</p>");
+$results = $sql->query($query) or die(errorMessage() . "Can't do SQL query - " . mysql_error() . "</p>");
 $i = 0;
 
-while ($data = mysql_fetch_row($results)) {
+while ($data = $results->fetch_row()) {
 	// NULLs are such a pain at times. isset($nullvar) == false
 	if (is_null($data[5]))
 		$data[5] = $data[0];
@@ -263,28 +172,24 @@ while ($data = mysql_fetch_row($results)) {
 	if (strlen($data[5]) == 0)
 		$data[5] = $data[0];
 	$myhash = $data[0];
+  $magnet = $data[9];
 	$writeout = "row" . $i % 2;
 	echo "<tr class=\"$writeout\">\n";
 	echo "\t<td>";
-	echo "\t<table class=\"nopadding\" border=\"0\"><tr><td valign=\"top\" align=\"left\" width=\"10%\">\n";
-	echo "\t<form method='post' action='torrent_functions.php'>\n";
-	echo "\t<input type='hidden' name='hash' value='" . $data[0] . "'/>\n";
-	echo "\t<input type='submit' value=' + '/></form>\n";
-	echo "\t</td><td valign=\"top\" align=\"left\">\n";
 	if (strlen($data[6]) > 0)
 		echo "<a href=\"${data[6]}\">${data[5]}</a> - ";
 	else
 		echo $data[5] . " - ";
 	if ($hiddentracker == true) //obscure direct link to torrent, use dltorrent.php script
-		echo "<a href=\"dltorrent.php?hash=" . $myhash . "\">  (Download Torrent)</a></td></tr>";
+		echo "<a href=\"dltorrent.php?hash=" . $myhash . "\">(Torrent)</a><a href='$magnet'>(Magnet)</a>";
 	else //just display ordinary direct link
-		echo "<a href=\"torrents/" . rawurlencode($data[5]) . ".torrent\">  (Download Torrent)</a></td></tr>";
+		echo "<a href=\"torrents/" . rawurlencode($data[5]) . ".torrent\">Torrent</a> <a href='$magnet'>(Magnet)</a>";
 	if (strlen($data[7]) > 0) //show file size
 	{
-		echo "<tr><td>&nbsp;</td><td>" . bytesToString($data[7]) . "</td>";
+		echo "<br/>".bytesToString($data[7]);
 		$total_disk_usage = $total_disk_usage + $data[7]; //total up file sizes
 	}
-	echo "</tr></table></td>\n";
+	echo "</td>\n";
 	for ($j=1; $j < 4; $j++) //show seeders, leechers, and completed downloads
 	{
 		echo "\t<td class=\"center\">$data[$j]</td>\n";
@@ -337,30 +242,10 @@ if ($GLOBALS["countbytes"]) //stop count bytes variable
 }
 
 ?>
-	</tr></table></td></tr>
-	<tr class="details">
-		<td align="left"><a href="http://www.rivetcode.com">RivetTracker</a> Version: 1.03</td>
-		<?php
-		if (file_exists("legalterms.txt"))
-			echo "<td align=\"right\"><a href=\"legalterms.txt\">Use Policy and Terms of Service</a></td>";
-		?>
 	</tr>
+  </table>
+  </td>
+</tr>
 </table>
-<a href="./docs/help.html"><img src="images/help.png" border="0" class="icon" alt="Help" title="Help" /></a><a href="./docs/help.html">Help</a>
-<h3>Notes</h3>
-<?php
-if ($GLOBALS["NAT"])
-	echo "<ul><li>This tracker does NAT checking when users connect. If you receive a probe to port 6881, it's probably this tracker.</li></ul>\n";
-else
-	echo "<ul><li>NAT checking has been disabled on this tracker.</li></ul>\n";
-
-echo "<ul><li>Even if there are no seeders, the download may still work because of HTTP seeding.</li></ul>\n";
-	
-if (rand(1, 10) == 1)
-{
-	//10% of the time, run sanity_no_output.php to prune database and keep users fresh
-	include("sanity_no_output.php");
-}
-
-?>
-</body></html>
+</body>
+</html>

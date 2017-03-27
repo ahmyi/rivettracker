@@ -1,6 +1,6 @@
 <?php
-require ("config.php");
-require_once ("funcsv2.php");
+require("config.php");
+require_once("funcsv2.php");
 //Check session
 session_start();
 
@@ -11,8 +11,6 @@ if (!$_SESSION['admin_logged_in'])
 	exit();
 }
 ?>
-
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 
 <html>
 <head>
@@ -30,16 +28,8 @@ Filename Search:<input type="text" name="filename_search" size="40"<?php if (iss
 <br>
 
 <?php
-require_once ("config.php");
-require_once ("funcsv2.php");
-
-//connect to database and grab each torrent in database
-if ($GLOBALS["persist"])
-	$db = mysql_pconnect($dbhost, $dbuser, $dbpass) or die(errorMessage() . "Tracker error: can't connect to database - " . mysql_error() . "</p>");
-else
-	$db = mysql_connect($dbhost, $dbuser, $dbpass) or die(errorMessage() . "Tracker error: can't connect to database - " . mysql_error() . "</p>");
-mysql_select_db($database) or die(errorMessage() . "Tracker error: can't open database $database - " . mysql_error() . "</p>");
-
+// require_once ("config.php");
+// require_once ("funcsv2.php");
 //Display search information
 if (isset($_POST["filename_search"]) && $_POST["filename_search"] != "")
 {
@@ -64,8 +54,8 @@ else //display everything
 		$where = " ";
 	
 	$query = "SELECT COUNT(*) FROM ".$prefix."summary $where";
-	$results = mysql_query($query);
-	$res = mysql_result($results,0,0);
+	$results = $sql->query($query);
+	$res = $results->data_seek(0);
 	
 	echo "<p align='center'>Page: \n";
 	$count = 0;
@@ -92,15 +82,15 @@ else //display everything
 	}
 }
 
-$results = mysql_query($query) or die(errorMessage() . "Can't do SQL query - " . mysql_error() . "</p>");
+$results = $sql->query($query) or die(errorMessage() . "Can't do SQL query - " . mysql_error() . "</p>");
 
-while ($data = mysql_fetch_row($results))
+while ($data = $results->fetch_row())
 {
 	$xhash = "x" . $data[0];
 	$query2 = "SELECT * FROM ".$prefix."$xhash";
-	$results2 = mysql_query($query2) or die(errorMessage() . "Can't do SQL query - " . mysql_error() . "</p>");
+	$results2 = $sql->query($query2) or die(errorMessage() . "Can't do SQL query - " . mysql_error() . "</p>");
 
-	if (mysql_num_rows($results2) == 0 && isset($_GET["activeonly"]))
+	if ($results2->num_rows == 0 && isset($_GET["activeonly"]))
 		break;
 	else
 	{
@@ -118,7 +108,7 @@ while ($data = mysql_fetch_row($results))
 
 	echo "<table>\n";
 	echo "<tr><th class=\"subheader\">IP Address</th><th class=\"subheader\">Data Left to Download</th><th class=\"subheader\" width=200>Percent Finished</th><th class=\"subheader\">Port</th><th class=\"subheader\">Last Update</th><th class=\"subheader\">NAT User</th></tr>\n";
-	while ($data2 = mysql_fetch_row($results2))
+	while ($data2 = $results2->fetch_row())
 	{
 		//grab information on each user
 		echo "<tr><td>" . $data2[2] . "</td>\n";
