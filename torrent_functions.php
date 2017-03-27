@@ -141,15 +141,9 @@ if (isset($_POST["hash"]))
 	//lookup file
 	require_once("config.php");
 	require_once("funcsv2.php");
-	//connect to DB
-	if ($GLOBALS["persist"])
-		$db = mysql_pconnect($dbhost, $dbuser, $dbpass) or die(errorMessage() . "Tracker error: can't connect to database - " . mysql_error() . "</p>");
-	else
-		$db = mysql_connect($dbhost, $dbuser, $dbpass) or die(errorMessage() . "Tracker error: can't connect to database - " . mysql_error() . "</p>");
-	mysql_select_db($database) or die(errorMessage() . "Tracker error: can't open database $database - " . mysql_error() . "</p>");
 	$query = "SELECT filename FROM ".$prefix."namemap WHERE info_hash = '" . $_POST["hash"] . "'";
-	$results = mysql_query($query) or die(errorMessage() . "Can't do SQL query - " . mysql_error() . "</p>");
-	$data = mysql_fetch_row($results);
+	$results = $sql->query($query);
+	$data = $results->fetch_row();
 	//find filename and set it
 	$_FILES["torrent"]["tmp_name"] = "torrents/" . $data[0] . ".torrent";
 	if (!isset($status))
@@ -428,13 +422,13 @@ if (isset($_FILES["torrent"]) || isset($_POST["url"]) || isset($_GET["url"]))
 					}
 					else
 						$filename .= $info["files"][$fileno]["path"][0];
-					$filename = mysql_real_escape_string($filename);			
-					mysql_query("INSERT INTO ".$prefix."webseedfiles (info_hash,filename,startpiece,endpiece,startpieceoffset,fileorder) values (\"$hash\", \"$filename\", $startpiece, $pieceno, $startoffset, $fileno)");
+					$filename = $sql->real_escape_string($filename);			
+					$sql->query("INSERT INTO ".$prefix."webseedfiles (info_hash,filename,startpiece,endpiece,startpieceoffset,fileorder) values (\"$hash\", \"$filename\", $startpiece, $pieceno, $startoffset, $fileno)");
 					$fileno++;
 				}
 			} // end of multi-file section
 			else //single file
-				mysql_query("INSERT INTO ".$prefix."webseedfiles (info_hash,filename,startpiece,endpiece,startpieceoffset,fileorder) values (\"$hash\", \"".mysql_real_escape_string($fsbase)."\", 0, ". (strlen($array["info"]["pieces"])/20 - 1).", 0, 0)");
+				$sql->query("INSERT INTO ".$prefix."webseedfiles (info_hash,filename,startpiece,endpiece,startpieceoffset,fileorder) values (\"$hash\", \"".mysql_real_escape_string($fsbase)."\", 0, ". (strlen($array["info"]["pieces"])/20 - 1).", 0, 0)");
 		}
 		
 		if ($_POST["getrightseed"] == "enabled" || $_POST["httpseed"] == "enabled") //only do one write
@@ -459,7 +453,7 @@ if (isset($_FILES["torrent"]) || isset($_POST["url"]) || isset($_GET["url"]))
 		
 		//add in piecelength and number of pieces
 		$query = "UPDATE ".$prefix."summary SET piecelength=\"" . $info["piece length"] . "\", numpieces=\"" . strlen ($array["info"]["pieces"])/20 . "\" WHERE info_hash=\"" . $hash . "\"";
-		quickQuery($query);
+		$sql->query($query);
 	}
 	
 	if (!isset($_POST["hash"])) //don't display admin link if coming from index.php
