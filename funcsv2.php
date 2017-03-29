@@ -72,8 +72,7 @@ function quickQuery($query)
 	return true;
 }
 
-if(!function_exists('hex2bin'))
-{
+if (!function_exists("hex2bin")){
 	function hex2bin ($input, $assume_safe=true)
 	{
 		if ($assume_safe !== true && ! ((strlen($input) % 2) === 0 || preg_match ('/^[0-9a-f]+$/i', $input)))
