@@ -8,8 +8,8 @@ if($_POST['legalterms'] != "on")
 
 if($_POST['login'] == "authentification")
 {
-  $user = $sql->real_escape_string($_POST['f_user']);
-  $pass = md5($sql->real_escape_string($_POST['f_pass']));
+  $user = htmlspecialchars($sql->real_escape_string($_POST['f_user']), ENT_QUOTES, 'UTF-8');
+  $pass = md5(htmlspecialchars($sql->real_escape_string($_POST['f_pass']), ENT_QUOTES, 'UTF-8'));
   $result=$sql->query("select * from `user` where (`user`='$user' and `pass`='$pass')");
   if($result->num_rows == 1)
   {

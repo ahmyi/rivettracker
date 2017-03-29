@@ -6,6 +6,7 @@ $GLOBALS["peer_id"] = "";
 $summaryupdate = array();
 require_once("config.php");
 require_once("funcsv2.php");
+
 //Banned Clients
 if(isset($_SERVER["HTTP_USER_AGENT"]))
 {
@@ -33,7 +34,7 @@ if (substr($_SERVER["PATH_INFO"],-7) == '/scrape')
 			if (get_magic_quotes_gpc())
 				$info_hash = stripslashes($_GET["info_hash"]);
 			else
-				$info_hash = $_GET["info_hash"];
+				$info_hash = htmlspecialchars($_GET["info_hash"], ENT_QUOTES, 'UTF-8');
 			if (strlen($info_hash) == 20)
 				$info_hash = bin2hex($info_hash);
 			else if (strlen($info_hash) == 40)
@@ -76,21 +77,6 @@ if (substr($_SERVER["PATH_INFO"],-7) == '/scrape')
 		showError("Scraping has been disabled by this tracker.");
 }
 
-/*if ($_SERVER["PATH_INFO"] != '/announce' && strlen($_SERVER["PATH_INFO"]) > 0)
-{
-	echo "Tracker.php error: ".$_SERVER["PATH_INFO"]." is unrecognized.";
-	exit;
-}*/ // Ignore!
-
-} // end of isset($_SERVER["PATH_INFO"])
-
-
-
-///////////////////////////////////////////////////////////////////
-// Handling of parameters from the URL and other setup
-
-
-// Error: no web browsers allowed
 if (!isset($_GET["info_hash"]) || !isset($_GET["peer_id"]))
 {
 	header("HTTP/1.0 400 Bad Request");
@@ -111,15 +97,15 @@ else
 if (!isset($_GET["port"]) || !isset($_GET["downloaded"]) || !isset($_GET["uploaded"]) || !isset($_GET["left"]))
 	showError("Invalid information received from BitTorrent client");
 
-$port = $_GET["port"];
-$ip = $sql->real_escape_string(str_replace("::ffff:", "", $_SERVER["REMOTE_ADDR"]));
-$downloaded = $_GET["downloaded"];
-$uploaded = $_GET["uploaded"];
-$left = $_GET["left"];
+$port = htmlspecialchars($_GET["port"], ENT_QUOTES, 'UTF-8');
+$ip = htmlspecialchars($sql->real_escape_string(str_replace("::ffff:", "", $_SERVER["REMOTE_ADDR"])), ENT_QUOTES, 'UTF-8');
+$downloaded = htmlspecialchars($_GET["downloaded"], ENT_QUOTES, 'UTF-8');
+$uploaded = htmlspecialchars($_GET["uploaded"], ENT_QUOTES, 'UTF-8');
+$left = htmlspecialchars($_GET["left"], ENT_QUOTES, 'UTF-8');
 
 
 if (isset($_GET["event"]))
-	$event = $_GET["event"];
+	$event = htmlspecialchars($_GET["event"], ENT_QUOTES, 'UTF-8');
 else
 	$event = "";
 
@@ -128,7 +114,7 @@ if (!isset($GLOBALS["ip_override"]))
 
 if (isset($_GET["numwant"]))
 	if ($_GET["numwant"] < $GLOBALS["maxpeers"] && $_GET["numwant"] >= 0)
-		$GLOBALS["maxpeers"]=$_GET["numwant"];
+		$GLOBALS["maxpeers"] = htmlspecialchars($_GET["numwant"], ENT_QUOTES, 'UTF-8');
 
 if (isset($_GET["trackerid"]))
 {	
@@ -184,12 +170,12 @@ function start($info_hash, $ip, $port, $peer_id, $left)
 	  }
 	}
 
-	if (isset($_GET["ip"]) && $GLOBALS["ip_override"])
+	if (isset($_SERVER["REMOTE_ADDR"]) && $GLOBALS["ip_override"])
 	{
 		// compact check: valid IP address:
-		if (ip2long($_GET["ip"]) == -1)
+		if (ip2long($_SERVER["REMOTE_ADDR"]) == -1)
 			showError("Invalid IP address. Must be standard dotted decimal (hostnames not allowed)");
-		$ip = $sql->real_escape_string($_GET["ip"]);
+		$ip = $sql->real_escape_string($_SERVER["REMOTE_ADDR"]);
 	}
 
 	if ($left == 0)

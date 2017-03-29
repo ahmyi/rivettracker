@@ -60,7 +60,7 @@ if(@$_SESSION['admin_logged_in'] == true or @$_SESSION['upload_logged_in'] == tr
                 <li><a href="editconfig.php">Edit Config</a></li>
                 <li><a href="uploadstats.php">Upload Statistics</a></li>
                 <li><a href="css.php">Change CSS</a></li>
-                <li><a href=""></a></li>';
+                <li><a href="admin_bl.php">Client Blacklist</a></li>';
   echo '        <li role="separator" class="divider"></li>
                 <li><a href="authenticate.php?status=logout">Logout</a></li>
               </ul>

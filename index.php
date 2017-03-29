@@ -42,6 +42,7 @@ if (!isset($GLOBALS["countbytes"]))
 	$GLOBALS["countbytes"] = true;
 
 include('header.php');
+echo '<div class="container">';
 if ($GLOBALS["title"] != "")
   echo "<h1>".$GLOBALS["title"]."</h1>";
 else
@@ -247,5 +248,6 @@ if ($GLOBALS["countbytes"]) //stop count bytes variable
   </td>
 </tr>
 </table>
+</div>
 </body>
 </html>

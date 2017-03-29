@@ -118,7 +118,7 @@ if (isset($_POST["output"]))
 
 }
 else if (isset($_GET["style"]))
-	$output = $_GET["style"];
+	$output = htmlspecialchars($_GET["style"], ENT_QUOTES, 'UTF-8');
 else
 	$output = -1;
 
@@ -141,7 +141,7 @@ if (isset($_POST["hash"]))
 	//lookup file
 	require_once("config.php");
 	require_once("funcsv2.php");
-	$query = "SELECT filename FROM ".$prefix."namemap WHERE info_hash = '" . $_POST["hash"] . "'";
+	$query = "SELECT filename FROM ".$prefix."namemap WHERE info_hash = '" . htmlspecialchars($_POST["hash"], ENT_QUOTES, 'UTF-8') . "'";
 	$results = $sql->query($query);
 	$data = $results->fetch_row();
 	//find filename and set it

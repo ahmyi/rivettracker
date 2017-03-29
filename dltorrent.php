@@ -13,13 +13,14 @@ if ($hiddentracker == true)
 else
 	exit();
 //if hash isn't of length 40, don't even bother connecting to database
-if (strlen($_GET['hash']) != 40)
+$hash = htmlspecialchars($_GET['hash'], ENT_QUOTES, 'UTF-8');
+if (strlen($hash) != 40)
 {
 	header("index.php"); 	
   	exit();
 }
 require_once ("funcsv2.php"); //required for errorMessage()
-$results = $sql->query("SELECT filename FROM ".$prefix."namemap WHERE info_hash = '" . $_GET['hash'] . "'");
+$results = $sql->query("SELECT filename FROM ".$prefix."namemap WHERE info_hash = '" . $hash . "'");
 $row = $sql->fetch_row($results);
 if ($row[0] == null)
 	exit(header("Location: index.php"));
