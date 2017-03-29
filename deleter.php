@@ -36,7 +36,7 @@ if (!$_SESSION['admin_logged_in'])
 	</script>
 </head>
 <body>
-<form action="<?php echo $_SERVER["PHP_SELF"];?>"  method="POST">
+<form action="<?php echo htmlentities($_SERVER['PHP_SELF']);?>"  method="POST">
 <?php
 require_once("funcsv2.php");
 

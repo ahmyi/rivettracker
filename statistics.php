@@ -23,8 +23,8 @@ if (!$_SESSION['admin_logged_in'])
 <body>
 <h1>Tracker User Statistics</h1>
 
-<form action="<?php echo $_SERVER["PHP_SELF"];?>" method="POST">
-Filename Search:<input type="text" name="filename_search" size="40"<?php if (isset($_POST["filename_search"]))echo " value=\"" . $_POST["filename_search"] . "\"";?>>
+<form action="<?php echo htmlentities($_SERVER['PHP_SELF']);?>" method="POST">
+Filename Search:<input type="text" name="filename_search" size="40"<?php if (isset($_POST["filename_search"]))echo " value=\"" . filterData($_POST["filename_search"]) . "\"";?>>
 <input type="submit" value="Search">
 </form>
 <br>
@@ -48,7 +48,7 @@ if (isset($_POST["filename_search"]) && $_POST["filename_search"] != "")
 }
 else //display everything
 {
-	$scriptname = $_SERVER["PHP_SELF"] . "?";
+	$scriptname = htmlentities($_SERVER['PHP_SELF']) . "?";
 	
 	if (!isset($_GET["activeonly"])) 
 		echo "<a href=\"$scriptname" . "activeonly=yes\">Show only torrents with seeders/leechers</a>\n";
@@ -79,16 +79,16 @@ else //display everything
 		else
 			echo "<a href=\"$scriptname" . "page_number=$page\">$page</a>-\n";
 		$page++;
-		$count = $count + 5;
+		$count = $count + ($GLOBALS["statspagelimitspecify"]);
 	}
 	echo "</p>\n";
 	
 	if (!isset($_GET["page_number"]))
-		$query = "SELECT * FROM ".$prefix."summary LEFT JOIN ".$prefix."namemap ON ".$prefix."summary.info_hash = ".$prefix."namemap.info_hash $where ORDER BY ".$prefix."namemap.filename LIMIT 0,5";
+		$query = "SELECT * FROM ".$prefix."summary LEFT JOIN ".$prefix."namemap ON ".$prefix."summary.info_hash = ".$prefix."namemap.info_hash $where ORDER BY ".$prefix."namemap.filename LIMIT 0,${GLOBALS['statspagelimitspecify']}";
 	else
 	{
-		$page_limit = ($_GET["page_number"] - 1) * 5;
-		$query = "SELECT * FROM ".$prefix."summary LEFT JOIN ".$prefix."namemap ON ".$prefix."summary.info_hash = ".$prefix."namemap.info_hash $where ORDER BY ".$prefix."namemap.filename LIMIT $page_limit,5";
+		$page_limit = ($_GET["page_number"] - 1) * ($GLOBALS["statspagelimitspecify"]);
+		$query = "SELECT * FROM ".$prefix."summary LEFT JOIN ".$prefix."namemap ON ".$prefix."summary.info_hash = ".$prefix."namemap.info_hash $where ORDER BY ".$prefix."namemap.filename LIMIT $page_limit,${GLOBALS['statspagelimitspecify']}";
 	}
 }
 
@@ -171,7 +171,7 @@ if (!isset($_POST["filename_search"]))
 	else
 		echo "<a href=\"$scriptname" . "page_number=$page\">$page</a>-\n";
 	$page++;
-	$count = $count + 5;
+	$count = $count + ($GLOBALS["statspagelimitspecify"]);
 	}
 	echo "</p>\n";
 }

@@ -214,7 +214,7 @@ while($count < $res)
 	else
 		echo "<a href=\"$scriptname" . "page_number=$page\">$page</a>-\n";
 	$page++;
-	$count = $count + 10;
+	$count = $count + ($GLOBALS['indexpagelimitspecify']);
 }
 echo "</p>\n";
 ?>
@@ -239,14 +239,14 @@ echo "</p>\n";
 	
 <?php
 if (!isset($_GET["page_number"]))
-	$query = "SELECT ".$prefix."summary.info_hash, ".$prefix."summary.seeds, ".$prefix."summary.leechers, ".$prefix."summary.finished, ".$prefix."summary.dlbytes, ".$prefix."namemap.filename, ".$prefix."namemap.url, ".$prefix."namemap.size, ".$prefix."summary.speed FROM ".$prefix."summary LEFT JOIN ".$prefix."namemap ON ".$prefix."summary.info_hash = ".$prefix."namemap.info_hash $where ORDER BY ".$prefix."namemap.filename LIMIT 0,10";
+	$query = "SELECT ".$prefix."summary.info_hash, ".$prefix."summary.seeds, ".$prefix."summary.leechers, ".$prefix."summary.finished, ".$prefix."summary.dlbytes, ".$prefix."namemap.filename, ".$prefix."namemap.url, ".$prefix."namemap.size, ".$prefix."summary.speed FROM ".$prefix."summary LEFT JOIN ".$prefix."namemap ON ".$prefix."summary.info_hash = ".$prefix."namemap.info_hash $where ORDER BY ".$prefix."namemap.filename LIMIT 0,${GLOBALS['indexpagelimitspecify']}";
 else
 {
 	if ($_GET["page_number"] <= 0) //account for possible negative number entry by user
 		$_GET["page_number"] = 1;
 	
-	$page_limit = ($_GET["page_number"] - 1) * 10;
-	$query = "SELECT ".$prefix."summary.info_hash, ".$prefix."summary.seeds, ".$prefix."summary.leechers, ".$prefix."summary.finished, ".$prefix."summary.dlbytes, ".$prefix."namemap.filename, ".$prefix."namemap.url, ".$prefix."namemap.size, ".$prefix."summary.speed FROM ".$prefix."summary LEFT JOIN ".$prefix."namemap ON ".$prefix."summary.info_hash = ".$prefix."namemap.info_hash $where ORDER BY ".$prefix."namemap.filename LIMIT $page_limit,10";
+	$page_limit = ($_GET["page_number"] - 1) * ($GLOBALS['indexpagelimitspecify']);
+	$query = "SELECT ".$prefix."summary.info_hash, ".$prefix."summary.seeds, ".$prefix."summary.leechers, ".$prefix."summary.finished, ".$prefix."summary.dlbytes, ".$prefix."namemap.filename, ".$prefix."namemap.url, ".$prefix."namemap.size, ".$prefix."summary.speed FROM ".$prefix."summary LEFT JOIN ".$prefix."namemap ON ".$prefix."summary.info_hash = ".$prefix."namemap.info_hash $where ORDER BY ".$prefix."namemap.filename LIMIT $page_limit,${GLOBALS['indexpagelimitspecify']}";
 }
 
 $results = mysql_query($query) or die(errorMessage() . "Can't do SQL query - " . mysql_error() . "</p>");
@@ -276,9 +276,28 @@ while ($data = mysql_fetch_row($results)) {
 	else
 		echo $data[5] . " - ";
 	if ($hiddentracker == true) //obscure direct link to torrent, use dltorrent.php script
-		echo "<a href=\"dltorrent.php?hash=" . $myhash . "\">  (Download Torrent)</a></td></tr>";
+		echo "<a href=\"dltorrent.php?hash=" . $myhash . "\">  (Download Torrent)</a>";
 	else //just display ordinary direct link
-		echo "<a href=\"torrents/" . rawurlencode($data[5]) . ".torrent\">  (Download Torrent)</a></td></tr>";
+		echo "<a href=\"torrents/" . rawurlencode($data[5]) . ".torrent\">  (Download Torrent)</a>";
+
+	//Magnet link
+	echo "&nbsp;<a href='";
+		//https://en.wikipedia.org/wiki/Magnet_URI_scheme
+		//Base-32 encoded SHA1 hash sum
+		echo "magnet:?xt=urn:btih:".$data[0];
+		//Size in bytes
+		echo "&xl=".$data[7];
+		//name
+		echo "&dn=".rawurlencode($data[5]);
+		//tracker url
+		echo "&tr=".$website_url . substr($_SERVER['PHP_SELF'], 0, -9) . $announceurl;
+	echo "'>(Magnet";
+	echo "<img src='images/magnet-icon.gif' border='0' class='icon' alt='Magnet Link' title='Magnet Link' />";
+	echo ")</a>";
+
+	echo "</td></tr>";
+
+
 	if (strlen($data[7]) > 0) //show file size
 	{
 		echo "<tr><td>&nbsp;</td><td>" . bytesToString($data[7]) . "</td>";
@@ -338,8 +357,10 @@ if ($GLOBALS["countbytes"]) //stop count bytes variable
 
 ?>
 	</tr></table></td></tr>
+<table>
 	<tr class="details">
 		<td align="left"><a href="http://www.rivetcode.com">RivetTracker</a> Version: 1.03</td>
+		<td align="right">
 		<?php
 		if (file_exists("legalterms.txt"))
 			echo "<td align=\"right\"><a href=\"legalterms.txt\">Use Policy and Terms of Service</a></td>";

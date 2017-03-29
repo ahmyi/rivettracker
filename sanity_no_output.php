@@ -49,12 +49,12 @@ while ($row = mysql_fetch_row($results))
 	if ($counts["leecher"] == 0)
 	{
 		//If there are no leechers, set the speed to zero
-		quickQuery("UPDATE ".$prefix."summary set speed=0 WHERE info_hash=\"$hash\"");
+		quickQuery("UPDATE ".$prefix."summary set speed=0 WHERE info_hash='$hash'");
 	}
 	
 
 	if ($bytes < 0)
-		quickQuery("UPDATE ".$prefix."summary SET dlbytes=0 WHERE info_hash=\"$hash\"");
+		quickQuery("UPDATE ".$prefix."summary SET dlbytes=0 WHERE info_hash='$hash'");
 
 	myTrashCollector($hash, $report_interval, time(), $writeout);
 
@@ -70,10 +70,10 @@ while ($row = mysql_fetch_row($results))
 		
 		while ($row = mysql_fetch_assoc($query))
 		{
-			$compact = mysql_escape_string(pack('Nn', ip2long($row["ip"]), $row["port"]));
-				$peerid = mysql_escape_string('2:ip' . strlen($row["ip"]) . ':' . $row["ip"] . '7:peer id20:' . hex2bin($row["peer_id"]) . "4:porti{$row["port"]}e");
-			$no_peerid = mysql_escape_string('2:ip' . strlen($row["ip"]) . ':' . $row["ip"] . "4:porti{$row["port"]}e");
-			mysql_query("INSERT INTO ".$prefix."y$hash SET sequence=\"{$row["sequence"]}\", compact=\"$compact\", with_peerid=\"$peerid\", without_peerid=\"$no_peerid\"");
+			$compact = mysql_real_escape_string(pack('Nn', ip2long($row["ip"]), $row["port"]));
+			$peerid = mysql_real_escape_string('2:ip' . strlen($row["ip"]) . ':' . $row["ip"] . '7:peer id20:' . hex2bin($row["peer_id"]) . "4:porti{$row["port"]}e");
+			$no_peerid = mysql_real_escape_string('2:ip' . strlen($row["ip"]) . ':' . $row["ip"] . "4:porti{$row["port"]}e");
+			mysql_query("INSERT INTO ".$prefix."y$hash SET sequence='{$row["sequence"]}', compact='$compact', with_peerid='$peerid', without_peerid='$no_peerid'");
 		}
 	}	
 
@@ -116,7 +116,7 @@ while ($row = mysql_fetch_row($results))
 function myTrashCollector($hash, $timeout, $now, $writeout)
 {
 	require("config.php");
- 	$peers = loadLostPeers($hash, $timeout);
+	$peers = loadLostPeers($hash, $timeout);
 	for ($i=0; $i < $peers["size"]; $i++) {
 	        killPeer($peers[$i]["peer_id"], $hash, $peers[$i]["bytes"], $peers[$i]);
 	}

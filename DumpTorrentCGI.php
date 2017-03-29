@@ -24,7 +24,7 @@ require_once("torrent_functions.php");
 This script parses a torrent file and displays detailed information about it.
 </td></tr>
 </table><br>
-<form enctype="multipart/form-data" method="POST" action="<?php echo $_SERVER["PHP_SELF"]; ?>">
+<form enctype="multipart/form-data" method="POST" action="<?php echo htmlentities($_SERVER['PHP_SELF']); ?>">
 Torrent file: <input type="file" name="torrent" size="40"><br>
 <br>
 OR

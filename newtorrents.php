@@ -22,7 +22,7 @@ if (!$_SESSION['admin_logged_in'] && !$_SESSION['upload_logged_in'])
 <body>
 
 <?php
-$tracker_url = $website_url . substr($_SERVER['REQUEST_URI'], 0, -15) . "announce.php";
+$tracker_url = $website_url . substr($_SERVER['PHP_SELF'], 0, -15) . $announceurl;
 
 if (isset($_FILES["torrent"]))
 	addTorrent();
@@ -34,7 +34,7 @@ endOutput();
 function addTorrent()
 {
 	require ("config.php");
-	$tracker_url = $website_url . substr($_SERVER['REQUEST_URI'], 0, -15) . "announce.php";
+	$tracker_url = $website_url . substr($_SERVER['PHP_SELF'], 0, -15) . $announceurl;
 	
 	$hash = strtolower($_POST["hash"]);
 
@@ -173,9 +173,10 @@ function addTorrent()
 	
 	//Validate torrent file, make sure everything is correct
 	
-	$filename = mysql_escape_string($filename);
+	$filename = mysql_real_escape_string($filename);
+	$filename = stripslashes($filename);
 	$filename = htmlspecialchars(clean($filename));
-	$url = htmlspecialchars(mysql_escape_string($url));
+	$url = htmlspecialchars(mysql_real_escape_string($url));
 
 	if ((strlen($hash) != 40) || !verifyHash($hash))
 	{
@@ -227,13 +228,13 @@ function addTorrent()
 function endOutput() 
 {
 	require ("config.php");
-	$tracker_url = $website_url . substr($_SERVER['REQUEST_URI'], 0, -15) . "announce.php";
+	$tracker_url = $website_url . substr($_SERVER['PHP_SELF'], 0, -15) . $announceurl;
 	?>
 	<p align="right"><a href="./docs/help.html"><img src="images/help.png" border="0" class="icon" alt="Help" title="Help" /></a><a href="./docs/help.html">Help</a></p>
 	<div class="center">
 	<h1>Add Torrent to Tracker Database</h1>
 	<h3>Tracker URL: <?php echo $tracker_url;?></h3>
-	<form enctype="multipart/form-data" method="post" action="<?php echo $_SERVER['PHP_SELF']; ?>">
+	<form enctype="multipart/form-data" method="post" action="<?php echo htmlentities($_SERVER['PHP_SELF']); ?>">
 	<table>
 	<tr>
 		<td class="right">Torrent file:</td>

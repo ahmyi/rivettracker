@@ -36,7 +36,7 @@ mysql_select_db($database) or die(errorMessage() . "Error selecting database.</p
 
 //get filename from URL string
 if (isset($_GET['filename'])) {
-	$filename = $_GET['filename'];
+	$filename = htmlentities($_GET['filename']);
 }
 
 //if not edit database or filename set, display all torrents as links
@@ -51,7 +51,7 @@ if (!isset($_POST["editdatabase"]) && !isset($filename))
 	
 	while ($data = mysql_fetch_row($rows))
 	{
-		echo "<tr><td><a href=\"" . $PHP_SELF . "?filename=" . rawurlencode($data[0]) . "\">" . $data[0] . "</a></td></tr>\n";
+		echo "<tr><td><a href=\"" . htmlentities($_SERVER['PHP_SELF']) . "?filename=" . rawurlencode($data[0]) . "\">" . $data[0] . "</a></td></tr>\n";
 	}
 	?>
 	</table>
@@ -60,12 +60,12 @@ if (!isset($_POST["editdatabase"]) && !isset($filename))
 
 if (isset($filename) && !isset($_POST["editdatabase"]))
 {
-	$query = "SELECT info_hash,filename,url,pubDate FROM ".$prefix."namemap WHERE filename = '" . $filename . "'";
+	$query = "SELECT info_hash,filename,url,pubDate FROM ".$prefix."namemap WHERE filename = '" . mysql_real_escape_string($filename) . "'";
 	$rows = mysql_query($query) or die(errorMessage() . "Can't do SQL query - " . mysql_error() . "</p>");
 	
 	$data = mysql_fetch_row($rows); //should be only one entry...
 	?>
-	<form action="<?php echo $_SERVER["PHP_SELF"];?>" method="POST">
+	<form action="<?php echo htmlentities($_SERVER['PHP_SELF']);?>" method="POST">
 	<input type="hidden" name="editdatabase" value="1">
 	<input type="hidden" name="<?php echo $data[0];?>" value="<?php echo $data[0];?>">
 	<input type="hidden" name="<?php echo $data[0] . "_old_filename";?>" value="<?php echo $data[1];?>">
