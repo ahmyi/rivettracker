@@ -29,7 +29,7 @@ if (!$_SESSION['admin_logged_in'])
 
 <?php
 
-if (isset($_FILES["zipfile"]) && $_FILES["zipfile"]["error"] != 4 && isset($_FILES["zipfile"]["tmp_name"])) //4 corresponds to the error no file uploaded
+if ($_FILES["zipfile"]["error"] != 4 && isset($_FILES["zipfile"]["tmp_name"])) //4 corresponds to the error no file uploaded
 {
 	?>
 	<a href="admin.php"><img src="images/admin.png" border="0" class="icon" alt="Admin Page" title="Admin Page" /></a><a href="admin.php">Return to Admin Page</a>
@@ -39,9 +39,6 @@ if (isset($_FILES["zipfile"]) && $_FILES["zipfile"]["error"] != 4 && isset($_FIL
 	
 	if ($zip == true)
 	{
-		$db = mysql_connect($dbhost, $dbuser, $dbpass) or die(errorMessage() . "Couldn't connect to the database, contact the administrator</p>");
-		mysql_select_db($database) or die(errorMessage() . "Can't open the database.</p>");
-	
 	   while ($zip_entry = zip_read($zip))
 	   {
 	   	echo "Name: " . zip_entry_name($zip_entry) . "<br>\n";
@@ -53,10 +50,10 @@ if (isset($_FILES["zipfile"]) && $_FILES["zipfile"]["error"] != 4 && isset($_FIL
 			   	//read in file from zip
 			  		$buffer = zip_entry_read($zip_entry, zip_entry_filesize($zip_entry));
 			      //go through each torrent file and add it if possible
-					require_once ("BDecode.php");
-					require_once ("BEncode.php");
+					require_once("BDecode.php");
+					require_once("BEncode.php");
 					
-					$tracker_url = $website_url . substr($_SERVER['REQUEST_URI'], 0, -16) . $announceurl;
+					$tracker_url = $website_url . substr($_SERVER['REQUEST_URI'], 0, -16) . "announce.php";
 					
 					$array = BDecode($buffer);
 					if (!$array)
@@ -64,29 +61,10 @@ if (isset($_FILES["zipfile"]) && $_FILES["zipfile"]["error"] != 4 && isset($_FIL
 						echo errorMessage() . "Error: The parser was unable to load this torrent.</p>\n";
 						$error_status = false;
 					}
-					if (isset($array["announce-list"])) {
-						//multiple trackers are listed
-						$found_tracker = false;
-						for ($i = 0; $i < count($array["announce-list"]); $i++) {
-							if (strtolower($array["announce-list"][$i][0]) == $tracker_url) {
-								$found_tracker = true;
-								break;
-							}
-						}
-						if ($found_tracker == false)
-						{
-							echo errorMessage() . "Error: Multiple trackers were found but none of them match the
-								announce URL:<br>$tracker_url<br>Please re-create and re-upload the torrent.</p>\n";
-							$error_status = false;
-							exit;
-						}
-					} else {
-						//a single tracker is listed
-						if (strtolower($array["announce"]) != $tracker_url) {
-							echo errorMessage() . "Error: The tracker announce URL does not match this:<br>$tracker_url<br>Please re-create and re-upload the torrent.</p>\n";
-							$error_status = false;
-							exit;
-						}
+					if (strtolower($array["announce"]) != $tracker_url)
+					{
+						echo errorMessage() . "Error: The tracker announce URL does not match this:<br>$tracker_url<br>Please re-create and re-upload the torrent.</p>\n";
+						$error_status = false;
 					}
 					if (function_exists("sha1"))
 						$hash = @sha1(BEncode($array["info"]));
@@ -113,8 +91,7 @@ if (isset($_FILES["zipfile"]) && $_FILES["zipfile"]["error"] != 4 && isset($_FIL
 					
 					//Validate torrent file, make sure everything is correct
 					$filename = $array["info"]["name"];
-					$filename = mysql_real_escape_string($filename);
-					$filename = stripslashes($filename);
+					$filename = $sql->real_escape_string($filename);
 					$filename = clean($filename);
 				
 					if ((strlen($hash) != 40) || !verifyHash($hash))
@@ -176,21 +153,17 @@ else
 {
 	//display upload box
 	?>
-	<?php require("config.php"); $tracker_url = $website_url . substr($_SERVER['REQUEST_URI'], 0, -16) . $announceurl; ?>
 	<p>This page lets you upload a zip file containing multiple torrents and add them into the database.  The
 	zip file cannot have any folders in it.  This requires that you are running PHP with compiled zip support.
 	If you are unsure, check with your system administrator or phpinfo().  Any torrents that already exist in
 	the database will be skipped.  If you want to use HTTP seeding you'll need to add this feature to the torrent
-	files before you zip and upload the file.  If you are uploading a very large zip file this may take some time...
-	<br>
-	<br>
-	The torrents you are batch uploading should include the following Tracker URL: <b><?php echo $tracker_url ?></b></p>
+	files before you zip and upload the file.  If you are uploading a very large zip file this may take some time...</p>
 	
 	<?php
-	if (function_exists("zip_open"))
+	if (function_exists(zip_open))
 	{
 		?>
-		<form enctype="multipart/form-data" action="<?php echo htmlentities($_SERVER['PHP_SELF']);?>" method="post">
+		<form enctype="multipart/form-data" action="<?php echo $_SERVER["PHP_SELF"];?>" method="post">
 		<b>Zip File:</b><input type="file" name="zipfile" size="50"/>
 		<input type="submit" value="Upload ZIP File"/>
 		</form>

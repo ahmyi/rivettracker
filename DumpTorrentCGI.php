@@ -1,15 +1,9 @@
 <?php
 require ("config.php");
 require ("funcsv2.php");
-//Check session
 session_start();
-
 if (!$_SESSION['admin_logged_in'])
-{
-	//check fails
-	header("Location: authenticate.php?status=session");
-	exit();
-}
+	exit(header("Location: authenticate.php?status=session"));
 ?>
 
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">

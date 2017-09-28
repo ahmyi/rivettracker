@@ -3,33 +3,32 @@
 //Validates Username and Password
 require_once ("config.php");
 
-if ($_POST['legalterms'] != "on")
+if($_POST['legalterms'] != "on")
+	exit(header("Location: authenticate.php?status=legalterms"));	//did not agree to legal terms, go back
+
+if($_POST['login'] == "authentification")
 {
-	//did not agree to legal terms, go back
-	header("Location: authenticate.php?status=legalterms");
-	exit();
+  $user = htmlspecialchars($sql->real_escape_string($_POST['f_user']), ENT_QUOTES, 'UTF-8');
+  $pass = md5(htmlspecialchars($sql->real_escape_string($_POST['f_pass']), ENT_QUOTES, 'UTF-8'));
+  $result=$sql->query("select * from `user` where (`user`='$user' and `pass`='$pass')");
+  if($result->num_rows == 1)
+  {
+      session_start();
+      $data = $result->fetch_row();
+      if($data[4] == 1)
+      {
+        $_SESSION['admin_logged_in'] = true;
+        $_SESSION['username'] = $user;
+        exit(header("Location: index.php"));
+      }
+      else
+      {
+        $_SESSION['upload_logged_in'] = true;
+        $_SESSION['username'] = $user;
+        exit(header("Location: index.php"));
+      }
+  }
+  else
+    exit(header("Location: authenticate.php?status=error"));
 }
-
-if (md5($_POST['f_user'].$_POST['f_pass']) == $admin_password && $_POST['f_user'] == $admin_username)
-{
-	//successful admin login
-	session_start();
-	$_SESSION['admin_logged_in'] = true;
-	header("Location: admin.php");
-	exit();
-}
-
-if (md5($_POST['f_user'].$_POST['f_pass']) == $upload_password && $_POST['f_user'] == $upload_username)
-{
-	//successful upload login
-	session_start();
-	$_SESSION['upload_logged_in'] = true;
-	header("Location: index.php");
-	exit();
-}
-
-//Username or password was incorrect at this point!
-header("Location: authenticate.php?status=error");
-exit();
-
 ?>

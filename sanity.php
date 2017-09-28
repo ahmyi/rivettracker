@@ -34,8 +34,6 @@ error_reporting(E_ALL);
 $summaryupdate = array();
 
 // Non-persistant: we lock tables!
-$db = mysql_connect($dbhost, $dbuser, $dbpass) or die(errorMessage() . "Tracker error: can't connect to database - ".mysql_error() . "</p>");
-mysql_select_db($database) or die(errorMessage() . "Tracker error: can't open database $database - ".mysql_error() . "</p>");
 
 if (isset($_GET["nolock"]))
 	$locking = false;
@@ -44,7 +42,7 @@ else
 
 // Assumes success
 if ($locking)
-	quickQuery("LOCK TABLES ".$prefix."summary WRITE, ".$prefix."namemap READ");
+	$sql->query("LOCK TABLES ".$prefix."summary WRITE, ".$prefix."namemap READ");
 
 ?>
 <table class="torrentlist" cellspacing="1">
@@ -59,20 +57,20 @@ if ($locking)
 </tr>
 <?php
 
-$results = mysql_query("SELECT ".$prefix."summary.info_hash, seeds, leechers, dlbytes, ".$prefix."namemap.filename FROM ".$prefix."summary LEFT JOIN ".$prefix."namemap ON ".$prefix."summary.info_hash = ".$prefix."namemap.info_hash");
+$results = $sql->query("SELECT ".$prefix."summary.info_hash, seeds, leechers, dlbytes, ".$prefix."namemap.filename FROM ".$prefix."summary LEFT JOIN ".$prefix."namemap ON ".$prefix."summary.info_hash = ".$prefix."namemap.info_hash");
 
 $i = 0;
 
-while ($row = mysql_fetch_row($results))
+while ($row = $results->fetch_row())
 {
 	$writeout = "row" . $i % 2;
 	list($hash, $seeders, $leechers, $bytes, $filename) = $row;
 	if ($locking)
 	{
 		//peercaching ALWAYS on
-		quickQuery("LOCK TABLES ".$prefix."x$hash WRITE, ".$prefix."y$hash WRITE, ".$prefix."summary WRITE");
+		$sql->query("LOCK TABLES ".$prefix."x$hash WRITE, ".$prefix."y$hash WRITE, ".$prefix."summary WRITE");
 	}
-	$results2 = mysql_query("SELECT status, COUNT(status) from ".$prefix."x$hash GROUP BY status");
+	$results2 = $sql->query("SELECT status, COUNT(status) from ".$prefix."x$hash GROUP BY status");
 	echo "<tr class=\"$writeout\"><td>";
 	if (!is_null($filename))
 		echo $filename;
@@ -81,12 +79,12 @@ while ($row = mysql_fetch_row($results))
 	echo "</td>";
 	if (!$results2)
 	{
-		echo "<td colspan=\"4\">Unable to process: ".mysql_error()."</td></tr>";
+		echo "<td colspan=\"4\">Unable to process:<td></tr>";
 		continue;
 	}
 
 	$counts = array();
-	while ($row = mysql_fetch_row($results2))
+	while ($row = $results2->fetch_row())
 		$counts[$row[0]] = $row[1];	
 	if (!isset($counts["leecher"]))
 		$counts["leecher"] = 0;
@@ -95,7 +93,7 @@ while ($row = mysql_fetch_row($results))
 
 	if ($counts["seeder"] != $seeders)
 	{
-		quickQuery("UPDATE ".$prefix."summary SET seeds=".$counts["seeder"]." WHERE info_hash=\"$hash\"");
+		$sql->query("UPDATE ".$prefix."summary SET seeds=".$counts["seeder"]." WHERE info_hash=\"$hash\"");
 		echo "<td class=\"center\">$seeders -> ".$counts["seeder"]."</td>";
 	}
 	else
@@ -103,7 +101,7 @@ while ($row = mysql_fetch_row($results))
 		
 	if ($counts["leecher"] != $leechers)
 	{
-		quickQuery("UPDATE ".$prefix."summary SET leechers=".$counts["leecher"]." WHERE info_hash=\"$hash\"");
+		$sql->query("UPDATE ".$prefix."summary SET leechers=".$counts["leecher"]." WHERE info_hash=\"$hash\"");
 		echo "<td class=\"center\">$leechers -> ".$counts["leecher"]."</td>";
 	}
 	else
@@ -112,12 +110,12 @@ while ($row = mysql_fetch_row($results))
 	if ($counts["leecher"] == 0)
 	{
 		//If there are no leechers, set the speed to zero
-		quickQuery("UPDATE ".$prefix."summary set speed=0 WHERE info_hash=\"$hash\"");
+		$sql->query("UPDATE ".$prefix."summary set speed=0 WHERE info_hash=\"$hash\"");
 	}
 
 	if ($bytes < 0)
 	{
-		quickQuery("UPDATE ".$prefix."summary SET dlbytes=0 WHERE info_hash=\"$hash\"");
+		$sql->query("UPDATE ".$prefix."summary SET dlbytes=0 WHERE info_hash=\"$hash\"");
 		echo "<td class=\"center\">$bytes -> Zero</td>";
 	}
 	else
@@ -126,39 +124,39 @@ while ($row = mysql_fetch_row($results))
 	myTrashCollector($hash, $report_interval, time(), $writeout);
 	echo "<td class=\"center\">";
 	
-	$result = mysql_query("SELECT ".$prefix."x$hash.sequence FROM ".$prefix."x$hash LEFT JOIN ".$prefix."y$hash ON ".$prefix."x$hash.sequence = ".$prefix."y$hash.sequence WHERE ".$prefix."y$hash.sequence IS NULL") or die(errorMessage() . "" . mysql_error() . "</p>");
-	if (mysql_num_rows($result) > 0)
+	$result = $sql->query("SELECT ".$prefix."x$hash.sequence FROM ".$prefix."x$hash LEFT JOIN ".$prefix."y$hash ON ".$prefix."x$hash.sequence = ".$prefix."y$hash.sequence WHERE ".$prefix."y$hash.sequence IS NULL") or die(errorMessage() . "" . mysql_error() . "</p>");
+	if ($result->num_rows > 0)
 	{
-		echo "Added ", mysql_num_rows($result);
+		echo "Added ", $result->num_rows;
 		$row = array();
 		
-		while ($data = mysql_fetch_row($result))
+		while ($data = $result->fetch_row())
 				$row[] = "sequence=\"${data[0]}\"";
 		$where = implode(" OR ", $row);
-		$query = mysql_query("SELECT * FROM ".$prefix."x$hash WHERE $where");
+		$query = $sql->query("SELECT * FROM ".$prefix."x$hash WHERE $where");
 		
-		while ($row = mysql_fetch_assoc($query))
+		while ($row = $query->fetch_assoc())
 		{
-			$compact = mysql_real_escape_string(pack('Nn', ip2long($row["ip"]), $row["port"]));
-			$peerid = mysql_real_escape_string('2:ip' . strlen($row["ip"]) . ':' . $row["ip"] . '7:peer id20:' . hex2bin($row["peer_id"]) . "4:porti{$row["port"]}e");
-			$no_peerid = mysql_real_escape_string('2:ip' . strlen($row["ip"]) . ':' . $row["ip"] . "4:porti{$row["port"]}e");
-			mysql_query("INSERT INTO ".$prefix."y$hash SET sequence='{$row["sequence"]}', compact='$compact', with_peerid='$peerid', without_peerid='$no_peerid'");
+			$compact = mysql_escape_string(pack('Nn', ip2long($row["ip"]), $row["port"]));
+				$peerid = mysql_escape_string('2:ip' . strlen($row["ip"]) . ':' . $row["ip"] . '7:peer id20:' . hex3bin($row["peer_id"]) . "4:porti{$row["port"]}e");
+			$no_peerid = mysql_escape_string('2:ip' . strlen($row["ip"]) . ':' . $row["ip"] . "4:porti{$row["port"]}e");
+			$sql->query("INSERT INTO ".$prefix."y$hash SET sequence=\"{$row["sequence"]}\", compact=\"$compact\", with_peerid=\"$peerid\", without_peerid=\"$no_peerid\"");
 		}
 	}	
 	else
 		echo "Added none";
 
-	$result = mysql_query("SELECT ".$prefix."y$hash.sequence FROM ".$prefix."y$hash LEFT JOIN ".$prefix."x$hash ON ".$prefix."y$hash.sequence = ".$prefix."x$hash.sequence WHERE ".$prefix."x$hash.sequence IS NULL");
+	$result = $sql->query("SELECT ".$prefix."y$hash.sequence FROM ".$prefix."y$hash LEFT JOIN ".$prefix."x$hash ON ".$prefix."y$hash.sequence = ".$prefix."x$hash.sequence WHERE ".$prefix."x$hash.sequence IS NULL");
 	if (mysql_num_rows($result) > 0)
 	{
-		echo ", Deleted ",mysql_num_rows($result);
+		echo ", Deleted ",$result->num_rows;
 
 		$row = array();
 		
-		while ($data = mysql_fetch_row($result))
+		while ($data = $result->fetch_row())
 			$row[] = "sequence=\"${data[0]}\"";
 		$where = implode(" OR ", $row);
-		$query = mysql_query("DELETE FROM ".$prefix."y$hash WHERE $where");
+		$query = $sql->query("DELETE FROM ".$prefix."y$hash WHERE $where");
 	}
 	else
 		echo ", Deleted none";
@@ -170,7 +168,7 @@ while ($row = mysql_fetch_row($results))
 
 
 	if ($locking)
-		quickQuery("UNLOCK TABLES");
+		$sql->query("UNLOCK TABLES");
 		
 	//Repair tables, is this necessary?  Sometimes the tables crash...
 	//Can't repair table if locked?
@@ -203,7 +201,7 @@ function myTrashCollector($hash, $timeout, $now, $writeout)
 		echo "<td class=\"center\">Removed $i</td>";
 	else
 		echo "<td class=\"center\">Removed 0</td>";
- 	quickQuery("UPDATE ".$prefix."summary SET lastcycle='$now' WHERE info_hash='$hash'");
+ 	$sql->query("UPDATE ".$prefix."summary SET lastcycle='$now' WHERE info_hash='$hash'");
 }
 
 

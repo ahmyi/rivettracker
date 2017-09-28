@@ -118,7 +118,7 @@ if (isset($_POST["output"]))
 
 }
 else if (isset($_GET["style"]))
-	$output = $_GET["style"];
+	$output = htmlspecialchars($_GET["style"], ENT_QUOTES, 'UTF-8');
 else
 	$output = -1;
 
@@ -141,15 +141,9 @@ if (isset($_POST["hash"]))
 	//lookup file
 	require_once("config.php");
 	require_once("funcsv2.php");
-	//connect to DB
-	if ($GLOBALS["persist"])
-		$db = mysql_pconnect($dbhost, $dbuser, $dbpass) or die(errorMessage() . "Tracker error: can't connect to database - " . mysql_error() . "</p>");
-	else
-		$db = mysql_connect($dbhost, $dbuser, $dbpass) or die(errorMessage() . "Tracker error: can't connect to database - " . mysql_error() . "</p>");
-	mysql_select_db($database) or die(errorMessage() . "Tracker error: can't open database $database - " . mysql_error() . "</p>");
-	$query = "SELECT filename FROM ".$prefix."namemap WHERE info_hash = '" . $_POST["hash"] . "'";
-	$results = mysql_query($query) or die(errorMessage() . "Can't do SQL query - " . mysql_error() . "</p>");
-	$data = mysql_fetch_row($results);
+	$query = "SELECT filename FROM ".$prefix."namemap WHERE info_hash = '" . htmlspecialchars($_POST["hash"], ENT_QUOTES, 'UTF-8') . "'";
+	$results = $sql->query($query);
+	$data = $results->fetch_row();
 	//find filename and set it
 	$_FILES["torrent"]["tmp_name"] = "torrents/" . $data[0] . ".torrent";
 	if (!isset($status))
@@ -263,20 +257,10 @@ if (isset($_FILES["torrent"]) || isset($_POST["url"]) || isset($_GET["url"]))
 		 	exit;	                
 		}
 
-		echo "<br><h2>Non-file data:</h2>\n";
+		echo "<br><h2>Non-file data:</h2>";
 		echo "<table border=0 cellpadding=2 cellspacing=2><tr>";
 		echo "<td align=right>Info hash</td><td>=</td><td><TT>$infohash</TT></td></tr>\n";
-		echo "<tr><td align=right>Announce URL(s)</td><td>=</td><td>";
-		if (isset($array["announce-list"])) {
-			for ($i = 0; $i < count($array["announce-list"]); $i++) {
-				echo $array["announce-list"][$i][0] . "<br>";
-			}
-		} else {
-			//single tracker
-			echo $array["announce"];
-		}
-		echo "</td></tr>\n";
-
+		echo "<tr><td align=right>Announce URL</td><td>=</td><td>".$array["announce"]."</td></tr>\n";
 		if (isset($array["creation date"]))
 		{
 			echo "<tr><td align=right>Creation date</td><td>=</td><td>";
@@ -293,7 +277,7 @@ if (isset($_FILES["torrent"]) || isset($_POST["url"]) || isset($_GET["url"]))
 
 		foreach ($array as $left => $right)
 		{
-			if ($left == "announce" || $left == "info" || $left == "creation date" || $left == "announce-list")
+			if ($left == "announce" || $left == "info" || $left == "creation date")
 				continue; // skip
 			if ($left == "url-list" || $left == "httpseeds")
 			{
@@ -387,7 +371,7 @@ if (isset($_FILES["torrent"]) || isset($_POST["url"]) || isset($_GET["url"]))
 	{
 		echo "<a href=\"newtorrents.php\"><img src=\"images/add.png\" border=\"0\" class=\"icon\" alt=\"Add Torrent\" title=\"Add Torrent\" /></a><a href=\"newtorrents.php\">Add Another Torrent</a><br>\n";
 		//add in Bittornado HTTP seeding spec
-		if (isset($_POST["httpseed"]) && $_POST["httpseed"] == "enabled")
+		if (@$_POST["httpseed"] == "enabled")
 		{
 			//add information into database
 			$info = $array["info"] or die("Invalid torrent file.");
@@ -438,16 +422,16 @@ if (isset($_FILES["torrent"]) || isset($_POST["url"]) || isset($_GET["url"]))
 					}
 					else
 						$filename .= $info["files"][$fileno]["path"][0];
-					$filename = mysql_real_escape_string($filename);			
-					mysql_query("INSERT INTO ".$prefix."webseedfiles (info_hash,filename,startpiece,endpiece,startpieceoffset,fileorder) values (\"$hash\", \"$filename\", $startpiece, $pieceno, $startoffset, $fileno)");
+					$filename = $sql->real_escape_string($filename);			
+					$sql->query("INSERT INTO ".$prefix."webseedfiles (info_hash,filename,startpiece,endpiece,startpieceoffset,fileorder) values (\"$hash\", \"$filename\", $startpiece, $pieceno, $startoffset, $fileno)");
 					$fileno++;
 				}
 			} // end of multi-file section
 			else //single file
-				mysql_query("INSERT INTO ".$prefix."webseedfiles (info_hash,filename,startpiece,endpiece,startpieceoffset,fileorder) values (\"$hash\", \"".mysql_real_escape_string($fsbase)."\", 0, ". (strlen($array["info"]["pieces"])/20 - 1).", 0, 0)");
+				$sql->query("INSERT INTO ".$prefix."webseedfiles (info_hash,filename,startpiece,endpiece,startpieceoffset,fileorder) values (\"$hash\", \"".mysql_real_escape_string($fsbase)."\", 0, ". (strlen($array["info"]["pieces"])/20 - 1).", 0, 0)");
 		}
 		
-		if ((isset($_POST["getrightseed"]) && $_POST["getrightseed"] == "enabled") || (isset($_POST["httpseed"]) && $_POST["httpseed"] == "enabled")) //only do one write
+		if (@$_POST["getrightseed"] == "enabled" || @$_POST["httpseed"] == "enabled") //only do one write
 		{
 			//edit torrent file
 			$read_httpseed = fopen("torrents/" . $filename . ".torrent", "rb");
@@ -469,7 +453,7 @@ if (isset($_FILES["torrent"]) || isset($_POST["url"]) || isset($_GET["url"]))
 		
 		//add in piecelength and number of pieces
 		$query = "UPDATE ".$prefix."summary SET piecelength=\"" . $info["piece length"] . "\", numpieces=\"" . strlen ($array["info"]["pieces"])/20 . "\" WHERE info_hash=\"" . $hash . "\"";
-		quickQuery($query);
+		$sql->query($query);
 	}
 	
 	if (!isset($_POST["hash"])) //don't display admin link if coming from index.php

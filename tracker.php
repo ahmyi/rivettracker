@@ -1,139 +1,129 @@
 <?php
-
 header("Content-type: text/plain");
-header("Pragma: no-cache");
-
+header("Pragma: no-cache"); 
 ignore_user_abort(1);
-
 $GLOBALS["peer_id"] = "";
 $summaryupdate = array();
-
 require_once("config.php");
 require_once("funcsv2.php");
 
-
-// Prep database
-if ($GLOBALS["persist"])
-	$db = @mysql_pconnect($dbhost, $dbuser, $dbpass) or showError("Tracker error: can't connect to database. Contact the webmaster.");
-else
-	$db = @mysql_connect($dbhost, $dbuser, $dbpass) or showError("Tracker error: can't connect to database. Contact the webmaster.");
-@mysql_select_db($database) or showError("Tracker error: can't open database. Contact the webmaster");
-
-
-if (isset ($_SERVER["PATH_INFO"]) )
+//Banned Clients
+if(isset($_SERVER["HTTP_USER_AGENT"]))
 {
-	// Scrape interface
-	if (!isset($_GET["info_hash"]))
-	{
-		header("HTTP/1.0 400 Bad Request");
-		die("This file is for BitTorrent clients.\n");
-	}
-
-	if (substr($_SERVER["PATH_INFO"],-7) == '/scrape')
-	{
-		if ($scrape == true)
-		{
-			$usehash = false;
-			if (isset($_GET["info_hash"]))
-			{
-				$info_hash = filterData($_GET["info_hash"]);
-				if (strlen($info_hash) == 20)
-					$info_hash = bin2hex($info_hash);
-				else if (strlen($info_hash) == 40)
-					verifyHash($info_hash) or showError("Invalid info hash value.");
-				else
-					showError("Invalid info hash value.");
-				$usehash = true;
-			}
-			if ($usehash)
-				$query = mysql_query("SELECT info_hash, filename FROM ".$prefix."namemap WHERE info_hash='$info_hash'");
-			else
-				$query = mysql_query("SELECT info_hash, filename FROM ".$prefix."namemap");
-			$namemap = array();
-			while ($row = mysql_fetch_row($query))
-				$namemap[$row[0]] = $row[1];
-	
-			if ($usehash)
-				$query = mysql_query("SELECT info_hash, seeds, leechers, finished FROM ".$prefix."summary WHERE info_hash='$info_hash'") or showError("Database error. Cannot complete request.");
-			else
-				$query = mysql_query("SELECT info_hash, seeds, leechers, finished FROM ".$prefix."summary ORDER BY info_hash") or showError("Database error. Cannot complete request.");
-
-			echo "d5:filesd";
-
-			while ($row = mysql_fetch_row($query))
-			{
-				$hash = hex2bin($row[0]);
-				echo "20:".$hash."d";
-				echo "8:completei".$row[1]."e";
-				echo "10:downloadedi".$row[3]."e";
-				echo "10:incompletei".$row[2]."e";
-				if (isset($namemap[$row[0]]))
-					echo "4:name".strlen($namemap[$row[0]]).":".$namemap[$row[0]];
-				echo "e";
-			}
-
-			echo "ee";
-			exit();
-		}
-		else {
-			//client tried scraping but scraping has been disabled by the tracker
-			showError("Scraping has been disabled by this tracker.");
-		}
-	}
+  $result = $sql->query("select * from `blacklist`");
+  if($result->num_rows >= 1)
+  {
+    while($row = $result->fetch_row())
+    {
+      if(stristr($_SERVER["HTTP_USER_AGENT"], $row[1]) || substr($_SERVER["HTTP_USER_AGENT"], 0, 5) == $row[1])
+        showError($row[1]." is not allowed on this torrent.");
+    }
+  }
 }
 
+if (isset ($_SERVER["PATH_INFO"]))
+{
+// Scrape interface
+if (substr($_SERVER["PATH_INFO"],-7) == '/scrape')
+{
+	if ($scrape == true)
+	{
+		$usehash = false;
+		if (isset($_GET["info_hash"]))
+		{
+			if (get_magic_quotes_gpc())
+				$info_hash = stripslashes($_GET["info_hash"]);
+			else
+				$info_hash = htmlspecialchars($_GET["info_hash"], ENT_QUOTES, 'UTF-8');
+			if (strlen($info_hash) == 20)
+				$info_hash = bin2hex($info_hash);
+			else if (strlen($info_hash) == 40)
+				verifyHash($info_hash) or showError("Invalid info hash value.");
+			else
+				showError("Invalid info hash value.");
+			$usehash = true;
+		}
+		if ($usehash)
+			$query = $sql->query("SELECT info_hash, filename FROM ".$prefix."namemap WHERE info_hash=\"$info_hash\"");
+		else
+			$query = $sql->query("SELECT info_hash, filename FROM ".$prefix."namemap");
+		$namemap = array();
+		while ($row = $query->fetch_row())
+			$namemap[$row[0]] = $row[1];
+	
+		if ($usehash)
+			$query = $sql->query("SELECT info_hash, seeds, leechers, finished FROM ".$prefix."summary WHERE info_hash=\"$info_hash\"") or showError("Database error. Cannot complete request.");
+		else
+			$query = $sql->query("SELECT info_hash, seeds, leechers, finished FROM ".$prefix."summary ORDER BY info_hash") or showError("Database error. Cannot complete request.");
+	
+		echo "d5:filesd";
+	
+		while ($row = $query->fetch_row())
+		{
+			$hash = hex3bin($row[0]);
+			echo "20:".$hash."d";
+			echo "8:completei".$row[1]."e";
+			echo "10:downloadedi".$row[3]."e";
+			echo "10:incompletei".$row[2]."e";
+			if (isset($namemap[$row[0]]))
+				echo "4:name".strlen($namemap[$row[0]]).":".$namemap[$row[0]];
+			echo "e";
+		}
+		
+		echo "ee";
+		exit;
+	}
+	else //client tried scraping but scraping has been disabled by the tracker
+		showError("Scraping has been disabled by this tracker.");
+}
 
-///////////////////////////////////////////////////////////////////
-// Handling of parameters from the URL and other setup
-
-
-// Error: no web browsers allowed
 if (!isset($_GET["info_hash"]) || !isset($_GET["peer_id"]))
 {
 	header("HTTP/1.0 400 Bad Request");
-	die("This file is for BitTorrent clients.\n");
+	die("Only BitTorrent Client are allowed.\n");
 }
 
+if (get_magic_quotes_gpc()) 
+{
+	$info_hash = bin2hex(stripslashes($_GET["info_hash"]));
+	$peer_id = bin2hex(stripslashes($_GET["peer_id"]));
+}
+else
+{
+	$info_hash = bin2hex($_GET["info_hash"]);
+	$peer_id = bin2hex($_GET["peer_id"]);
+}
 
-$info_hash = bin2hex(clean($_GET["info_hash"]));
-$peer_id = bin2hex(filterData($_GET["peer_id"]));
-
-
-if (!isset($_GET["port"]) || !isset($_GET["downloaded"]) || !isset($_GET["uploaded"]) || !isset($_GET["left"])) {
+if (!isset($_GET["port"]) || !isset($_GET["downloaded"]) || !isset($_GET["uploaded"]) || !isset($_GET["left"]))
 	showError("Invalid information received from BitTorrent client");
-}
 
-$port = filterData($_GET["port"]);
-$ip = filterData((str_replace("::ffff:", "", $_SERVER["REMOTE_ADDR"])));
-$downloaded = filterData($_GET["downloaded"]);
-$uploaded = filterData($_GET["uploaded"]);
-$left = filterData($_GET["left"]);
+$port = htmlspecialchars($_GET["port"], ENT_QUOTES, 'UTF-8');
+$ip = htmlspecialchars($sql->real_escape_string(str_replace("::ffff:", "", $_SERVER["REMOTE_ADDR"])), ENT_QUOTES, 'UTF-8');
+$downloaded = htmlspecialchars($_GET["downloaded"], ENT_QUOTES, 'UTF-8');
+$uploaded = htmlspecialchars($_GET["uploaded"], ENT_QUOTES, 'UTF-8');
+$left = htmlspecialchars($_GET["left"], ENT_QUOTES, 'UTF-8');
 
 
 if (isset($_GET["event"]))
-	$event = filterData($_GET["event"]);
+	$event = htmlspecialchars($_GET["event"], ENT_QUOTES, 'UTF-8');
 else
 	$event = "";
 
 if (!isset($GLOBALS["ip_override"]))
 	$GLOBALS["ip_override"] = true;
 
-if (isset($_GET["numwant"])) {
-	if ($_GET["numwant"] < $GLOBALS["maxpeers"] && $_GET["numwant"] >= 0) {
-		$GLOBALS["maxpeers"] = filterData($_GET["numwant"]);
-	}
-}
+if (isset($_GET["numwant"]))
+	if ($_GET["numwant"] < $GLOBALS["maxpeers"] && $_GET["numwant"] >= 0)
+		$GLOBALS["maxpeers"] = htmlspecialchars($_GET["numwant"], ENT_QUOTES, 'UTF-8');
 
 if (isset($_GET["trackerid"]))
 {	
-	if (is_numeric($_GET["trackerid"])) {
-		$GLOBALS["trackerid"] = filterData($_GET["trackerid"]);
-	}
+	if (is_numeric($_GET["trackerid"]))
+		$GLOBALS["trackerid"] = $sql->real_escape_string($_GET["trackerid"]);
 }
-
-if (!is_numeric($port) || !is_numeric($downloaded) || !is_numeric($uploaded) || !is_numeric($left)) {
+if (!is_numeric($port) || !is_numeric($downloaded) || !is_numeric($uploaded) || !is_numeric($left))
 	showError("Invalid numerical field(s) from client");
-}
+
 
 
 /////////////////////////////////////////////////////
@@ -173,19 +163,19 @@ function start($info_hash, $ip, $port, $peer_id, $left)
 			else
 			{
 				// Finally, we can accept it as a "real" ip address.
-				$ip = mysql_escape_string(trim($address));
+				$ip = $sql->real_escape_string(trim($address));
 				break;
 			}
 		}
 	  }
 	}
 
-	if (isset($_GET["ip"]) && $GLOBALS["ip_override"])
+	if (isset($_SERVER["REMOTE_ADDR"]) && $GLOBALS["ip_override"])
 	{
 		// compact check: valid IP address:
-		if (ip2long($_GET["ip"]) == -1)
+		if (ip2long($_SERVER["REMOTE_ADDR"]) == -1)
 			showError("Invalid IP address. Must be standard dotted decimal (hostnames not allowed)");
-		$ip = filterData($_GET["ip"]);
+		$ip = $sql->real_escape_string($_SERVER["REMOTE_ADDR"]);
 	}
 
 	if ($left == 0)
@@ -197,12 +187,12 @@ function start($info_hash, $ip, $port, $peer_id, $left)
 	else
 		$nat = "'N'";
 	
-	$results = @mysql_query("INSERT INTO ".$prefix."x$info_hash SET peer_id='$peer_id', port='$port', ip='$ip', lastupdate=UNIX_TIMESTAMP(), bytes='$left', status='$status', natuser=$nat");
+	$results = @$sql->query("INSERT INTO ".$prefix."x$info_hash SET peer_id=\"$peer_id\", port=\"$port\", ip=\"$ip\", lastupdate=UNIX_TIMESTAMP(), bytes=\"$left\", status=\"$status\", natuser=$nat");
 
 	// Special case: duplicated peer_id. 
 	if (!$results)
 	{
-		$error = mysql_error();
+		$error = $sql->error;
 		if (stristr($error, "key"))
 		{
 			// Duplicate peer_id! Check IP address
@@ -214,7 +204,7 @@ function start($info_hash, $ip, $port, $peer_id, $left)
 			}
 			//showError("Duplicated peer_id or changed IP address. Please restart BitTorrent.");
 			// Different IP address. Assume they were disconnected, and alter the IP address.
-			quickQuery("UPDATE ".$prefix."x$info_hash SET ip='$ip' WHERE peer_id='$peer_id'");
+			quickQuery("UPDATE ".$prefix."x$info_hash SET ip=\"$ip\" WHERE peer_id=\"$peer_id\"");
 			return "WHERE natuser='N'";
 		}
 		error_log("RivetTracker: start: ".$error);
@@ -222,22 +212,26 @@ function start($info_hash, $ip, $port, $peer_id, $left)
 	}
 	$GLOBALS["trackerid"] = mysql_insert_id();
 
-	$compact = filterData(pack('Nn', ip2long($ip), $port));
-	$peerid = filterData('2:ip' . strlen($ip) . ':' . $ip . '7:peer id20:' . hex2bin($peer_id) . "4:porti{$port}e");
-	$no_peerid = filterData('2:ip' . strlen($ip) . ':' . $ip . "4:porti{$port}e");
-	@mysql_query("INSERT INTO ".$prefix."y$info_hash SET sequence='{$GLOBALS["trackerid"]}', compact='$compact', with_peerid='$peerid', without_peerid='$no_peerid'");
+	$compact = $sql->real_escape_string(pack('Nn', ip2long($ip), $port));
+	$peerid = $sql->real_escape_string('2:ip' . strlen($ip) . ':' . $ip . '7:peer id20:' . hex3bin($peer_id) . "4:porti{$port}e");
+	$no_peerid = $sql->real_escape_string('2:ip' . strlen($ip) . ':' . $ip . "4:porti{$port}e");
+	$sql->query("INSERT INTO ".$prefix."y$info_hash SET sequence=\"{$GLOBALS["trackerid"]}\", compact=\"$compact\", with_peerid=\"$peerid\", without_peerid=\"$no_peerid\"");
+	// Let's just assume success... :/
 
 	if ($left == 0)
 	{
 		summaryAdd("seeds", 1);
-		return "WHERE status='leecher' AND natuser='N'";
+		return "WHERE status=\"leecher\" AND natuser='N'";
 	}
 	else
 	{
 		summaryAdd("leechers", 1);
 		return "WHERE natuser='N'";
 	}
-}// End of function start
+}
+
+
+/// End of function start
 
 
 
@@ -256,7 +250,7 @@ if ($event == '')
 	if ($peer_exists["bytes"] != 0 && $left == 0)
 	{
 
-		quickQuery("UPDATE ".$prefix."x$info_hash SET bytes=0, status='seeder' WHERE sequence='${GLOBALS["trackerid"]}");
+		quickQuery("UPDATE ".$prefix."x$info_hash SET bytes=0, status=\"seeder\" WHERE sequence=\"${GLOBALS["trackerid"]}");
 		if (mysql_affected_rows() == 1)
 		{
 			summaryAdd("leechers", -1);
@@ -301,10 +295,10 @@ else if ($event == "completed") // now the same as an empty string
 		start($info_hash, $ip, $port, $peer_id, $left);
 	else
 	{
-		quickQuery("UPDATE ".$prefix."x$info_hash SET bytes=0, status='seeder' WHERE sequence='${GLOBALS["trackerid"]}'");
+		$sql->query("UPDATE ".$prefix."x$info_hash SET bytes=0, status=\"seeder\" WHERE sequence=\"${GLOBALS["trackerid"]}\"");
 
 		// Race check
-		if (mysql_affected_rows() == 1)
+		if ($sql->affected_rows == 1) 
 		{
 			summaryAdd("leechers", -1);
 			summaryAdd("seeds", 1);
@@ -326,8 +320,8 @@ if ($GLOBALS["countbytes"])
 	// Once every minute or so, we run the speed update checker.
 	// This is still not very accurate... :/
 	//@ symbol suppresses errors
-	$query = @mysql_query("SELECT UNIX_TIMESTAMP() - lastSpeedCycle FROM ".$prefix."summary WHERE info_hash='$info_hash'");
-	$results = mysql_fetch_row($query);
+	$query = @$sql->query("SELECT UNIX_TIMESTAMP() - lastSpeedCycle FROM ".$prefix."summary WHERE info_hash=\"$info_hash\"");
+	$results = $query->fetch_row();
 	if ($results[0] >= 60 || $event == "completed")
 	{
 		if (Lock("SPEED:$info_hash"))
@@ -356,6 +350,7 @@ if (!empty($summaryupdate))
 	{
 		$stuff .= ', '.$column. ($value[1] ? "=" : "=$column+") . $value[0];
 	}
-	mysql_query("UPDATE ".$prefix."summary SET ".substr($stuff, 1)." WHERE info_hash='$info_hash'");
+	$sql->query("UPDATE ".$prefix."summary SET ".substr($stuff, 1)." WHERE info_hash=\"$info_hash\"");
 }
 
+// EOF
