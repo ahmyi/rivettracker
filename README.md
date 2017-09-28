@@ -1,7 +1,7 @@
 # Description
 RivetTracker is a modified version of PHPBTTracker. Written in PHP, this BitTorrent tracker uses MySQL as the database backend. It provides an RSS feed, optional support for HTTP seeding, detailed connection statistics, easy installation, and much more. 
 
-The original works were forked from works of [firefly2442](https://sourceforge.net/projects/rivettracker)
+The original works were forked from [firefly2442](https://sourceforge.net/projects/rivettracker)
 
 
 # RivetTracker Reborn
