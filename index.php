@@ -159,7 +159,7 @@ else
 	$query = "SELECT ".$prefix."summary.info_hash, ".$prefix."summary.seeds, ".$prefix."summary.leechers, ".$prefix."summary.finished, ".$prefix."summary.dlbytes, ".$prefix."namemap.filename, ".$prefix."namemap.url, ".$prefix."namemap.size, ".$prefix."summary.speed, ".$prefix."namemap.magnet FROM ".$prefix."summary LEFT JOIN ".$prefix."namemap ON ".$prefix."summary.info_hash = ".$prefix."namemap.info_hash $where ORDER BY ".$prefix."namemap.filename LIMIT $page_limit,10";
 }
 
-$results = $sql->query($query) or die(errorMessage() . "Can't do SQL query - " . mysql_error() . "</p>");
+$results = $sql->query($query) or die(errorMessage() . "Can't do SQL query - " . mysqli_error($sql) . "</p>");
 $i = 0;
 
 while ($data = $results->fetch_row()) {
