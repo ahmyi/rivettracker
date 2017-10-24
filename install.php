@@ -144,11 +144,13 @@ exit;
 		<?php exit;
 	}
 	$prefix = $_POST["prefix"];
-	$makenamemap= 'CREATE TABLE ' . $prefix . 'namemap (info_hash char(40) NOT NULL default "", filename varchar(250) NOT NULL default "", url varchar(250) NOT NULL default "", size bigint(20) unsigned NOT NULL, pubDate varchar(25) NOT NULL default "", PRIMARY KEY(info_hash)) ENGINE = innodb'; 	
+	$makenamemap= 'CREATE TABLE ' . $prefix . 'namemap (info_hash char(40) NOT NULL default "", filename varchar(250) NOT NULL default "", url varchar(250) NOT NULL default "", size bigint(20) unsigned NOT NULL, pubDate varchar(25) NOT NULL default "", magnet text DEFAULT NULL, PRIMARY KEY(info_hash)) ENGINE = innodb'; 	
 	$makesummary = 'CREATE TABLE ' . $prefix . 'summary (info_hash char(40) NOT NULL default "", dlbytes bigint unsigned NOT NULL default 0, seeds int unsigned NOT NULL default 0, leechers int unsigned NOT NULL default 0, finished int unsigned NOT NULL default 0, lastcycle int unsigned NOT NULL default "0", lastSpeedCycle int unsigned NOT NULL DEFAULT "0", speed bigint unsigned NOT NULL default 0, piecelength int(11) NOT NULL default -1, numpieces int(11) NOT NULL default 0, PRIMARY KEY (info_hash)) ENGINE = innodb';
 	$maketimestamps = 'CREATE TABLE ' . $prefix . 'timestamps (info_hash char(40) not null, sequence int unsigned not null auto_increment, bytes bigint unsigned not null, delta smallint unsigned not null, primary key(sequence), key sorting (info_hash)) ENGINE = innodb';
 	$makespeedlimit = 'CREATE TABLE ' . $prefix . 'speedlimit (uploaded bigint(25) NOT NULL default 0, total_uploaded bigint(30) NOT NULL default 0, started bigint(25) NOT NULL default 0) ENGINE = innodb';
 	$makewebseedfiles = 'CREATE TABLE ' . $prefix . 'webseedfiles (info_hash char(40) default NULL, filename char(250) NOT NULL default "", startpiece int(11) NOT NULL default 0, endpiece int(11) NOT NULL default 0, startpieceoffset int(11) NOT NULL default 0, fileorder int(11) NOT NULL default 0, UNIQUE KEY fileseq (info_hash,fileorder)) ENGINE = innodb';	
+	$makeuser = 'CREATE TABLE `'.$prefix.'user` ( `id` int(100) NOT NULL AUTO_INCREMENT, `user` varchar(255) NOT NULL, `pass` text NOT NULL, `access` int(1) NOT NULL DEFAULT 0, PRIMARY KEY (`id`) ) ENGINE=InnoDB DEFAULT CHARSET=latin1;';	
+	$makebl = 'CREATE TABLE `'.$prefix.'blacklist` ( `id` int(100) NOT NULL AUTO_INCREMENT, `useragent` text NOT NULL, PRIMARY KEY (`id`) ) ENGINE=InnoDB DEFAULT CHARSET=latin1;';	
 	if (isset($_POST["maketables"]))
 	{
 		$username = $_POST["username"] or die(errorMessage() . "No username was given, please try again.</p>");
@@ -161,6 +163,8 @@ exit;
 		$sql->query($maketimestamps);
 		$sql->query($makespeedlimit);
 		$sql->query($makewebseedfiles);
+		$sql->query($makeuser);
+		$sql->query($makebl);
 		$sql->query("INSERT INTO ".$prefix."speedlimit values (0,0,0)");
 		echo "<p class=\"success\">Database was created successfully!</p><br><br>";
 	}
@@ -513,7 +517,9 @@ exit;
       "\$sql = new mysqli(\$dbhost, \$dbuser, \$dbpass, \$database);" . "';\n" .
 			"?>"
 			);
-
+      $sql = new mysqli($_POST["dbhost"], $_POST["dbuser"], $_POST["dbpass"], $_POST["database"]);
+      $sql->query("insert into `".$_POST["prefix"]."user` (`user`, `pass`, `access`) values ('".$_POST["admin_username"]."', '".md5($_POST["admin_password"])."', '2')");
+      $sql->query("insert into `".$_POST["prefix"]."user` (`user`, `pass`, `access`) values ('".$_POST["upload_username"]."', '".md5($_POST["upload_password"])."', '1')");
 			fclose($fd);
 			echo "<br><p class=\"success\">config.php file was created successfully!</p>";
 		}

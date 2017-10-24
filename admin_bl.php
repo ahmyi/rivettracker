@@ -9,13 +9,13 @@ if($_SESSION['admin_logged_in'] == true)
     if($action == "del")
     {
       $id = $_GET["id"];
-      $sql->query("delete from `blacklist` where `id`='$id'");
+      $sql->query("delete from `".$prefix."blacklist` where `id`='$id'");
       exit(header("Location: admin_bl.php"));
     }
     if($action == "add")
     {
       $agent = $_POST['useragent'];
-      $sql->query("INSERT INTO `blacklist` (`useragent`) VALUES ('$agent')");
+      $sql->query("INSERT INTO `".$prefix."blacklist` (`useragent`) VALUES ('$agent')");
       exit(header("Location: admin_bl.php"));
     }
   }
@@ -29,7 +29,7 @@ if($_SESSION['admin_logged_in'] == true)
               </tr>
             </thead>
             <tbody>';
-  $data = $sql->query("select * from `blacklist`");
+  $data = $sql->query("select * from `".$prefix."blacklist`");
   if($data->num_rows >= 1)
   {
     while($row = $data->fetch_row())
