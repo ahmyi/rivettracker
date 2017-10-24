@@ -11,6 +11,14 @@ if (!$_SESSION['admin_logged_in'])
 	header("Location: authenticate.php?status=session");
 	exit();
 }
+
+// Prep database, needed for cleaning function
+if ($GLOBALS["persist"])
+	$db = @mysql_pconnect($dbhost, $dbuser, $dbpass) or showError("Can't connect to database. Contact the webmaster.");
+else
+	$db = @mysql_connect($dbhost, $dbuser, $dbpass) or showError("Can't connect to database. Contact the webmaster.");
+@mysql_select_db($database) or showError("Can't open database. Contact the webmaster");
+
 ?>
 
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
@@ -44,8 +52,8 @@ if (!$_SESSION['admin_logged_in'])
 if (isset($_POST["set_css"]))
 {
 	//delete style.css file
-	if (copy("./css/" . $_POST["set_css"], "./css/style.css"))
-		echo "<p class=\"success\">style.css file has been replaced with " . $_POST["set_css"] . "</p>";
+	if (copy("./css/" . filterData($_POST["set_css"]), "./css/style.css"))
+		echo "<p class=\"success\">style.css file has been replaced with " . filterData($_POST["set_css"]) . "</p>";
 	else
 	{
 		echo errorMessage() . "Error: Unable to copy over style.css, are the permissions correct?</p>";
@@ -55,11 +63,11 @@ if (isset($_POST["set_css"]))
 elseif (isset($_POST["delete_css"]))
 {
 	//delete css file
-	if (unlink("./css/" . $_POST["delete_css"]))
-		echo "<p class=\"success\">" . $_POST["delete_css"] . " has been deleted</p>";
+	if (unlink("./css/" . filterData($_POST["delete_css"])))
+		echo "<p class=\"success\">" . filterData($_POST["delete_css"]) . " has been deleted</p>";
 	else
 	{
-		echo errorMessage() . "Error: Unable to delete " . $_POST["delete_css"] . ", are you sure the permissions are correct?</p>";
+		echo errorMessage() . "Error: Unable to delete " . filterData($_POST["delete_css"]) . ", are you sure the permissions are correct?</p>";
 		exit();
 	}
 }
@@ -68,19 +76,24 @@ elseif (isset($_POST["create_css"]))
 	//create new css file by copying over style.css into new file
 	if (substr($_POST["create_css"], -4) == ".css")
 	{
-		if (!file_exists("./css/" . $_POST["create_css"]))
+		if (!file_exists("./css/" . filterData($_POST["create_css"])))
 		{
-			if (copy("./css/style.css", "./css/" . $_POST["create_css"]))
-				echo "<p class=\"success\">" . $_POST["create_css"] . ", was created successfuly</p>";
+			if (filterData($_POST["create_css"]) == ".css")
+			{
+				echo errorMessage() . "Error: Should not create .css file with only an extension!</p>";
+				exit();
+			}
+			elseif (copy("./css/style.css", "./css/" . filterData($_POST["create_css"])))
+				echo "<p class=\"success\">" . filterData($_POST["create_css"]) . " was created successfully</p>";
 			else
 			{
-				echo errorMessage() . "Error: Unabled to create " . $_POST["create_css"] . ", are you sure the permissions are correct?</p>";
-				exit();			
+				echo errorMessage() . "Error: Unable to create " . filterData($_POST["create_css"]) . ", are you sure the permissions are correct?</p>";
+				exit();
 			}
 		}
 		else
 		{
-			echo errorMessage() . "Error: " . $_POST["create_css"] . " already exists, please choose a different name</p>";
+			echo errorMessage() . "Error: " . filterData($_POST["create_css"]) . " already exists, please choose a different name</p>";
 			exit();
 		}
 	}
@@ -130,15 +143,15 @@ if (isset($_POST["create_css"]) || isset($_POST["edit_css"]))
 	<?php
 	
 	if (isset($_POST["create_css"]))
-		$filename = $_POST["create_css"];
+		$filename = filterData($_POST["create_css"]);
 	if (isset($_POST["edit_css"]))
-		$filename = $_POST["edit_css"];
+		$filename = filterData($_POST["edit_css"]);
 	//display text box with css in it
 	?>
 	<h2>Editing File: <?php echo $filename;?></h2>
-	<form action="<?php echo $_SERVER["PHP_SELF"];?>" method="post">
+	<form action="<?php echo htmlentities($_SERVER['PHP_SELF']);?>" method="post">
 	<input type="hidden" name="hidden_filename" value="<?php echo $filename;?>"/>
-	<input type="hidden" name="current_css_file" value="<?php echo $_POST['current_css_file'];?>"/>
+	<input type="hidden" name="current_css_file" value="<?php echo filterData($_POST['current_css_file']);?>"/>
 	<textarea name="file_contents" cols="120" rows="20"><?php
 	//open css file
 	readfile("./css/" . $filename);
@@ -153,13 +166,13 @@ if (isset($_POST["create_css"]) || isset($_POST["edit_css"]))
 if (isset($_POST["file_contents"]))
 {
 	//save previously edited text into file
-	if (is_writable("./css/" . $_POST["hidden_filename"]))
+	if (is_writable("./css/" . filterData($_POST["hidden_filename"])))
 	{
 		//open file
-		$stream = fopen("./css/" . $_POST["hidden_filename"], "w");
-		fwrite($stream, $_POST["file_contents"]);
+		$stream = fopen("./css/" . filterData($_POST["hidden_filename"]), "w");
+		fwrite($stream, filterData($_POST["file_contents"]));
 		fclose($stream);
-		echo "<p class=\"success\">" . $_POST["hidden_filename"] . ", was saved successfuly</p>";
+		echo "<p class=\"success\">" . filterData($_POST["hidden_filename"]) . ", was saved successfuly</p>";
 	}
 	else
 	{
@@ -169,8 +182,8 @@ if (isset($_POST["file_contents"]))
 	//if editing the current css file, replace that too
 	if ($_POST["current_css_file"] == $_POST["hidden_filename"])
 	{
-		if (copy("./css/" . $_POST["hidden_filename"], "./css/style.css"))
-			echo "<p class=\"success\">style.css file has been replaced with " . $_POST["hidden_filename"] . "</p>";
+		if (copy("./css/" . filterData($_POST["hidden_filename"]), "./css/style.css"))
+			echo "<p class=\"success\">style.css file has been replaced with " . filterData($_POST["hidden_filename"]) . "</p>";
 		else
 		{
 			echo errorMessage() . "Error: Unable to copy over style.css, are the permissions correct?</p>";
@@ -203,7 +216,7 @@ if (!isset($_POST["create_css"]) && !isset($_POST["edit_css"]) && !isset($_POST[
 	echo "<b>Currently Used CSS File: " . $current_css_file . "</b><br><br>";
 	?>
 	
-	<form action="<?php echo $_SERVER['PHP_SELF'];?>" method="post">
+	<form action="<?php echo htmlentities($_SERVER['PHP_SELF']);?>" method="post">
 	<b>Set CSS File:</b><select name="set_css">
 	<?php
 	for ($i = 0; $i < $number_files; $i++)
@@ -217,7 +230,7 @@ if (!isset($_POST["create_css"]) && !isset($_POST["edit_css"]) && !isset($_POST[
 	</form>
 	<br><br>
 	
-	<form action="<?php echo $_SERVER['PHP_SELF'];?>" method="post"> 
+	<form action="<?php echo htmlentities($_SERVER['PHP_SELF']);?>" method="post"> 
 	<b>Delete CSS File:</b><select name="delete_css">
 	<?php
 	for ($i = 0; $i < $number_files; $i++)
@@ -231,7 +244,7 @@ if (!isset($_POST["create_css"]) && !isset($_POST["edit_css"]) && !isset($_POST[
 	</form>
 	<br><br>
 	
-	<form action="<?php echo $_SERVER['PHP_SELF'];?>" method="post">
+	<form action="<?php echo htmlentities($_SERVER['PHP_SELF']);?>" method="post">
 	<input type="hidden" name="current_css_file" value="<?php echo $current_css_file;?>"/>
 	<b>Edit Existing CSS File:</b><select name="edit_css">
 	<?php
@@ -245,7 +258,7 @@ if (!isset($_POST["create_css"]) && !isset($_POST["edit_css"]) && !isset($_POST[
 	</form>
 	<br><br>
 	
-	<form action="<?php echo $_SERVER['PHP_SELF'];?>" method="post"> 
+	<form action="<?php echo htmlentities($_SERVER['PHP_SELF']);?>" method="post"> 
 	<b>Create New CSS File (e.g. mycssfile.css):</b>
 	<input type="text" size="40" name="create_css"/>
 	<input type="submit" value="Create New CSS File"/>

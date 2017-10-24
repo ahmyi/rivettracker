@@ -10,7 +10,7 @@ require_once("funcsv2.php");
 //Banned Clients
 if(isset($_SERVER["HTTP_USER_AGENT"]))
 {
-  $result = $sql->query("select * from `blacklist`");
+  $result = $sql->query("select * from `".$prefix."blacklist`");
   if($result->num_rows >= 1)
   {
     while($row = $result->fetch_row())

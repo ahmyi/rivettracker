@@ -367,7 +367,7 @@ if (isset($_FILES["torrent"]) || isset($_POST["url"]) || isset($_GET["url"]))
 		announceoutput($array);
 	}
 
-	if (file_exists("torrents/" . $filename . ".torrent")) //for newtorrents.php
+	if (isset($filename) && file_exists("torrents/" . $filename . ".torrent")) //for newtorrents.php
 	{
 		echo "<a href=\"newtorrents.php\"><img src=\"images/add.png\" border=\"0\" class=\"icon\" alt=\"Add Torrent\" title=\"Add Torrent\" /></a><a href=\"newtorrents.php\">Add Another Torrent</a><br>\n";
 		//add in Bittornado HTTP seeding spec

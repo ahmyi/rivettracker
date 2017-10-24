@@ -1,5 +1,4 @@
 <?php
-require_once('config.php');
 
 function stats() {
   $query = "SELECT SUM(".$prefix."namemap.size), SUM(".$prefix."summary.seeds), SUM(".$prefix."summary.leechers), SUM(".$prefix."summary.finished), SUM(".$prefix."summary.dlbytes), SUM(".$prefix."summary.speed) FROM ".$prefix."summary LEFT JOIN ".$prefix."namemap ON ".$prefix."summary.info_hash = ".$prefix."namemap.info_hash";
@@ -143,7 +142,7 @@ function errorMessage()
 // Returns true/false, depending on if there were errors.
 function makeTorrent($hash, $tolerate = false)
 {
-	require("config.php"); //necessary to get the prefix value, require_once() doesn't seem to work :/
+    require("config.php"); //necessary to get the prefix value, require_once() doesn't seem to work :/
 	if (strlen($hash) != 40)
 		showError("makeTorrent: Received an invalid hash");
 	$result = true;
